@@ -41,10 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     #Mis apps
     #'apps.all_projects',
-    #'apps.landing_page',
+    'apps.landing_page',
     'apps.login_users',
     #'apps.upload_projects',
     #'apps.user_profile',
+    'apps.signupKL',
 ]
 
 MIDDLEWARE = [

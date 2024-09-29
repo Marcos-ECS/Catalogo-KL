@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class LandingPageConfig(AppConfig):
+class SignupKLConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.landing_page'
+    name = 'apps.signupKL'
