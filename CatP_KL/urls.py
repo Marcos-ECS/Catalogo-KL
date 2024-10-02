@@ -23,4 +23,5 @@ urlpatterns = [
     path('login/', include('apps.login_users.urls')),
     #path('upload_projects/', include('apps.upload_projects')),
     path('signupKL/', include('apps.signupKL.urls')),
+
 ]
