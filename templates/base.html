@@ -11,18 +11,23 @@
             <li>
                 <a href="/home">Inicio</a>
             </li>
-            <li>
-                <a href="/signupKL">Registro</a>
-            </li>
+            
            {% if user.is_authenticated %}
            <form method="POST" action="{% url 'logoutkl' %}">
             {% csrf_token %}
             <button type="submit">Cerrar sesión</button>
            </form>
+           <li>
+            <a href="/signupKL/task/">Task</a>
+            </li>
             {% else %}
             <li>
-                <a href="/loginkl">Iniciar sesion</a>
+                <a href="/signupKL">Registro</a>
             </li>
+            <li>
+                <a href="{% url 'loginkl' %}">Iniciar sesion</a>
+            </li>
+            
            {% endif %}
         </ul>
     </nav>

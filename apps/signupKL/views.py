@@ -21,8 +21,8 @@ def signup(request):
                 #registro
                 user = User.objects.create_user(username=request.POST['username'], password=request.POST['password1'])
                 user.save()
-                login(request, user)
-                return redirect('loginuser')   
+                #login(request, user)
+                return redirect('task')   
             except IntegrityError:
                     return render (request, 'signkl.html',{
                     'form': UserCreationForm,
@@ -33,8 +33,8 @@ def signup(request):
             "error": 'La contraseña no coincide'
         })
     
-def loginkl(request):
-     return render(request, 'loginuser.html')
+def task(request):
+     return render(request, 'task.html')
 
 def logoutkl(request):
      logout(request)
