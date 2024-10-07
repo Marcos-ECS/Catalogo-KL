@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.db import IntegrityError
 from django.contrib import messages
-
+from .forms import ProyectoFormulario
 
 # Create your views here.
 #Registro de usuaurios
@@ -35,6 +35,24 @@ def signup(request):
     
 def task(request):
      return render(request, 'task.html')
+
+def crear_proyectos(request):
+     if request.method == 'GET':
+         return render(request, 'create_project.html', {
+             'form': ProyectoFormulario
+     })
+     else:
+        try:
+            form = ProyectoFormulario(request.POST)
+            new_project = form.save(commit=False)
+            new_project.Empleado_Responsable = request.user
+            new_project.save()
+            return redirect ('task')
+        except ValueError:
+             return render(request, 'create_project.html', {
+                'form': ProyectoFormulario,
+                'error': 'Por favor proporcione datos validos'
+        })
 
 def logoutkl(request):
      logout(request)
