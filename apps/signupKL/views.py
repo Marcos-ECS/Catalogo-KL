@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -6,6 +6,7 @@ from django.contrib.auth import login, logout
 from django.db import IntegrityError
 from django.contrib import messages
 from .forms import ProyectoFormulario
+from .models import Proyecto
 
 # Create your views here.
 #Registro de usuaurios
@@ -34,7 +35,8 @@ def signup(request):
         })
     
 def task(request):
-     return render(request, 'task.html')
+     task = Proyecto.objects.all()
+     return render(request, 'task.html', {'task': task})
 
 def crear_proyectos(request):
      if request.method == 'GET':
@@ -53,6 +55,19 @@ def crear_proyectos(request):
                 'form': ProyectoFormulario,
                 'error': 'Por favor proporcione datos validos'
         })
+def Editar_proyectos(request, project_id):
+     if request.method == 'GET':
+        task = get_object_or_404(Proyecto, pk=project_id)
+        form = ProyectoFormulario(instance=task)
+        return render(request, 'project_edit.html', {'task':task, 'form': form})
+     else:
+         try:
+             task = get_object_or_404(Proyecto, pk=project_id)
+             form = ProyectoFormulario(request.POST, instance=task)
+             form.save()
+             return redirect('task')
+         except ValueError:
+             return render(request, 'project_edit.html',{'task':task, 'form':form, 'error': "Error al actualizar proyecto"})
 
 def logoutkl(request):
      logout(request)

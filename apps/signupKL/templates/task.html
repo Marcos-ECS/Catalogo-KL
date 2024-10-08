@@ -1,4 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Proyectos</h1>
+<h1>Proyectos en borrador</h1>
+
+{% for Proyecto in task %}
+
+    <li>
+        <a href="{% url 'project_edit' Proyecto.id %}">
+        <h1>{{Proyecto.titulo}}</h1></a>
+        <p>{{Proyecto.descripcion}}</p>
+        <p>{{Proyecto.Empleado_Responsable}}</p>
+    </li>   
+{% endfor %}
+
 {% endblock %}

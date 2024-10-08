@@ -13,13 +13,16 @@
             </li>
             
            {% if user.is_authenticated %}
-           <form method="POST" action="{% url 'logoutkl' %}">
-            {% csrf_token %}
-            <button type="submit">Cerrar sesión</button>
-           </form>
-           <li>
-            <a href="/signupKL/task/">Task</a>
+            <li>
+                <a href="/signupKL/task/">Proyectos</a>
             </li>
+            <li>
+                <a href="/signupKL/task/create">Crear proyectos</a>
+            </li>
+            <form method="POST" action="{% url 'logoutkl' %}">
+                {% csrf_token %}
+                <button type="submit">Cerrar sesión</button>
+               </form>
             {% else %}
             <li>
                 <a href="/signupKL">Registro</a>
