@@ -69,6 +69,12 @@ def Editar_proyectos(request, project_id):
          except ValueError:
              return render(request, 'project_edit.html',{'task':task, 'form':form, 'error': "Error al actualizar proyecto"})
 
+def Borrar_proyecto(request, project_id):
+    task = get_object_or_404(Proyecto, pk=project_id)
+    if request.method == 'POST':
+        task.delete()
+        return redirect('task')
+
 def logoutkl(request):
      logout(request)
      messages.info(request, 'Has cerrado la sesion')
