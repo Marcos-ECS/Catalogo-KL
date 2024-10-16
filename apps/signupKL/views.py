@@ -69,6 +69,10 @@ def Editar_proyectos(request, project_id):
          except ValueError:
              return render(request, 'project_edit.html',{'task':task, 'form':form, 'error': "Error al actualizar proyecto"})
 
+def Proyectos_publicado(request):
+    task = Proyecto.objects.filter(Publicar = True)
+    return render(request, 'task_publicados.html', {'task': task})
+
 def Borrar_proyecto(request, project_id):
     task = get_object_or_404(Proyecto, pk=project_id)
     if request.method == 'POST':
@@ -78,4 +82,4 @@ def Borrar_proyecto(request, project_id):
 def logoutkl(request):
      logout(request)
      messages.info(request, 'Has cerrado la sesion')
-     return redirect('/home/')
+     return redirect('home')

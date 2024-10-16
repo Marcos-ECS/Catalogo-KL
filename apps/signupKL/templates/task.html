@@ -1,14 +1,19 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Proyectos en borrador</h1>
+<h1>Menú de proyectos(Editar, Borrar y publicar)</h1>
 
 {% for Proyecto in task %}
 
     <li>
         <a href="{% url 'project_edit' Proyecto.id %}">
         <h1>{{Proyecto.titulo}}</h1></a>
-        <p>{{Proyecto.descripcion}}</p>
-        <p>{{Proyecto.Empleado_Responsable}}</p>
+        {% if Proyecto.Publicar %}
+            <p>Estatus: <strong>Publicado</strong></p>
+        {% else %}
+            <p>Estatus: <strong>Borrador</strong></p>
+        {% endif %}
+        <p>Descripcion: {{Proyecto.descripcion}}</p>
+        <p>Subido por: {{Proyecto.Empleado_Responsable}}</p>
     </li>   
 {% endfor %}
 

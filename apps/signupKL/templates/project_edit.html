@@ -1,10 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>
-    Editar Proyectos
-</h1>
-
-<h1>{{task.titulo}}</h1>
+<h1>Editar proyecto: {{task.titulo}}</h1>
 {{error}}
 <form method="POST">
     {% csrf_token%}

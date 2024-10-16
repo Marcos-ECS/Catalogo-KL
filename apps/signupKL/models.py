@@ -7,7 +7,7 @@ class Proyecto(models.Model):
     descripcion = models.TextField(blank=True)
     FechaDeAgregado = models.DateTimeField(auto_now_add=True)
     Fecha_De_Realizacion = models.DateTimeField(null=True, blank=True)
-    importante = models.BooleanField(default=False)
+    Publicar = models.BooleanField(default=False)
     Empleado_Responsable = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

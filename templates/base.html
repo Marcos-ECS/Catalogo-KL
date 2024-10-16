@@ -1,41 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
     <nav>
         <ul>
             <li>
-                <a href="/home">Inicio</a>
+                <a href="{% url 'home' %}">Inicio</a>
             </li>
-            
-           {% if user.is_authenticated %}
+            {% if user.is_authenticated %}
             <li>
-                <a href="/signupKL/task/">Proyectos</a>
+                <a href="/signupKL">Registar usuarios nuevos</a>
             </li>
+            <li>
+                <a href="/signupKL/task/">Menú de proyectos</a>
+            </li>
+            <li><a href="{% url 'published_projects' %}">Proyectos pulicados(preview)</a></li>
             <li>
                 <a href="/signupKL/task/create">Crear proyectos</a>
             </li>
             <form method="POST" action="{% url 'logoutkl' %}">
                 {% csrf_token %}
                 <button type="submit">Cerrar sesión</button>
-               </form>
+            </form>
+            
             {% else %}
-            <li>
-                <a href="/signupKL">Registro</a>
-            </li>
+            <li><a href="{% url 'published_projects' %}">Proyectos</a></li>
             <li>
                 <a href="{% url 'loginkl' %}">Iniciar sesion</a>
             </li>
-            
-           {% endif %}
+
+            {% endif %}
         </ul>
     </nav>
     {% block content %}
     {% endblock %}
 
 </body>
+
 </html>
