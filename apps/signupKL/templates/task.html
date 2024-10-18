@@ -1,19 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Menú de proyectos(Editar, Borrar y publicar)</h1>
+<h1>Menú de proyectos(Editar, habilitar o deshabilitar proyecto)</h1>
 
 {% for Proyecto in task %}
 
     <li>
         <a href="{% url 'project_edit' Proyecto.id %}">
         <h1>{{Proyecto.titulo}}</h1></a>
-        {% if Proyecto.Publicar %}
-            <p>Estatus: <strong>Publicado</strong></p>
+        {% if Proyecto.Estatus_de_proyecto == 'Si' %}
+            <p>Estatus: <strong>Activo</strong></p>
         {% else %}
-            <p>Estatus: <strong>Borrador</strong></p>
+            <p>Estatus: <strong>Inactivo</strong></p>
         {% endif %}
         <p>Descripcion: {{Proyecto.descripcion}}</p>
         <p>Subido por: {{Proyecto.Empleado_Responsable}}</p>
+        <p>Fecha de subida: {{ Proyecto.FechaDeAgregado }}</p>
     </li>   
 {% endfor %}
 

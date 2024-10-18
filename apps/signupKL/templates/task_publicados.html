@@ -2,25 +2,25 @@
 
 {% block content %}
 {% if user.is_authenticated %}
-<h1>Proyectos Publicados (Esto es una vista previa del lado de los clientes)</h1>
+<h1>Proyectos Publicados (Esto es una vista del lado de los clientes)</h1>
 <ul>
     {% for Proyecto in task %}
     <li>
         <h2>{{ Proyecto.titulo }}</h2>
         <p>{{ Proyecto.descripcion }}</p>
         <p>Subido por: {{ Proyecto.Empleado_Responsable }}</p>
+        <p>Fecha de subida: {{ Proyecto.FechaDeAgregado }}</p>
     </li>
     {% endfor %}
 </ul>
 {% else %}
-<h1>Proyectos Publicados</h1>
+<h1>Proyectos</h1>
 
 <ul>
     {% for Proyecto in task %}
     <li>
         <h2>{{ Proyecto.titulo }}</h2>
         <p>{{ Proyecto.descripcion }}</p>
-        <p>Subido por: {{ Proyecto.Empleado_Responsable }}</p>
     </li>
     {% endfor %}
 </ul>

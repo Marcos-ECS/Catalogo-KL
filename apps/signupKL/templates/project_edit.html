@@ -11,10 +11,4 @@
     </button>
 </form>
 
-<form action="{% url 'delete_project' task.id %}" method="POST">
-    {% csrf_token %}
-    <button>
-        Borrar
-    </button>
-</form>
 {% endblock %}
