@@ -1,14 +1,45 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Editar proyecto: {{task.titulo}}</h1>
-{{error}}
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token%}
-    {{form.as_p}}
 
-    <button>
-        Actualizar
-    </button>
+{{ error }}
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <h2>Galería de imágenes</h2>
+    {{ formset_imagenes.management_form }}
+
+    <ul>
+        {% for form in formset_imagenes %}
+            <li>
+                {{ form.as_p }}  <!-- Mostrar la imagen actual y el campo para subir nuevas -->
+            </li>
+        {% endfor %}
+    </ul>
+
+    <button type="submit">Actualizar</button>
 </form>
+
+<!-- Mostrar errores del formulario del proyecto -->
+{% if form_errors %}
+    <ul>
+        {% for field, error in form_errors.items %}
+            <li>{{ field }}: {{ error }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<!-- Mostrar errores del formset de imágenes -->
+{% if formset_errors %}
+    <ul>
+        {% for error in formset_errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+
 
 {% endblock %}

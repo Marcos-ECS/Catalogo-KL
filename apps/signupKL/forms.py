@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms import modelformset_factory
 from .models import Proyecto, ImagenesdeProyecto
+from django import forms
+
 
 class ProyectoFormulario(ModelForm):
     class Meta:
@@ -15,7 +17,16 @@ class ProyectoFormulario(ModelForm):
         if kwargs.get('instance') is None:  # Es un proyecto nuevo (no existe instancia)
             self.fields.pop('Estatus_de_proyecto')
 
-ImagenesdeProyectoFormSet = modelformset_factory(ImagenesdeProyecto, fields=('imagen',), extra=3)  # Puedes ajustar 'extra'
+
+ImagenesdeProyectoFormSet = modelformset_factory(
+    ImagenesdeProyecto,
+    fields=('imagen',),
+    extra=3,
+    can_delete=True,
+    widgets={
+        'imagen': forms.ClearableFileInput(attrs={'required': False})  # Hacer el campo no requerido
+    }
+)
 
 class RegistroFormulario(UserCreationForm):
     class Meta:
@@ -30,3 +41,4 @@ class RegistroFormulario(UserCreationForm):
         super(RegistroFormulario, self).__init__(*args, **kwargs)
         self.fields['password1'].label = 'Contraseña'  # Cambia el label de password1
         self.fields['password2'].label = 'Confirmar contraseña'  # Cambia el label de password2
+

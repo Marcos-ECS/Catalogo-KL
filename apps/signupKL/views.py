@@ -75,18 +75,60 @@ def crear_proyectos(request):
 
 @login_required        
 def Editar_proyectos(request, project_id):
-     if request.method == 'GET':
-        task = get_object_or_404(Proyecto, pk=project_id)
+    task = get_object_or_404(Proyecto, pk=project_id)
+    
+    if request.method == 'GET':
         form = ProyectoFormulario(instance=task)
-        return render(request, 'project_edit.html', {'task':task, 'form': form})
-     else:
-         try:
-             task = get_object_or_404(Proyecto, pk=project_id)
-             form = ProyectoFormulario(request.POST, request.FILES, instance=task)
-             form.save()
-             return redirect('task')
-         except ValueError:
-             return render(request, 'project_edit.html',{'task':task, 'form':form, 'error': "Error al actualizar proyecto"})
+        formset_imagenes = ImagenesdeProyectoFormSet(queryset=ImagenesdeProyecto.objects.filter(proyecto=task))  # Cargar imágenes actuales
+        return render(request, 'project_edit.html', {'task': task, 'form': form, 'formset_imagenes': formset_imagenes})
+    
+    else:
+        try:
+            # Procesar el formulario del proyecto
+            form = ProyectoFormulario(request.POST, request.FILES, instance=task)
+            formset_imagenes = ImagenesdeProyectoFormSet(request.POST, request.FILES, queryset=ImagenesdeProyecto.objects.filter(proyecto=task))
+            
+            if form.is_valid() and formset_imagenes.is_valid():
+                # Guardar cambios en el proyecto (incluyendo el estatus)
+                form.save()
+
+                # Procesar las imágenes en el formset
+                for form in formset_imagenes:
+                    imagen_proyecto = form.save(commit=False)
+
+                    # Verificar si la imagen está marcada para eliminar
+                    if form.cleaned_data.get('DELETE'):
+                        if imagen_proyecto.pk:  # Si existe en la BD, eliminarla
+                            imagen_proyecto.delete()
+                    # Guardar solo si hay una imagen nueva
+                    elif form.cleaned_data.get('imagen'):
+                        imagen_proyecto.proyecto = task  # Asignar el proyecto a la imagen
+                        imagen_proyecto.save()
+
+                # Guardar los cambios en el formset
+                formset_imagenes.save()
+
+                return redirect('task')
+
+            else:
+                # Mostrar los errores del formulario y del formset
+                return render(request, 'project_edit.html', {
+                    'task': task,
+                    'form': form,
+                    'formset_imagenes': formset_imagenes,
+                    'error': "Error al actualizar el proyecto",
+                    'form_errors': form.errors,
+                    'formset_errors': formset_imagenes.errors,
+                })
+
+        except ValueError:
+            return render(request, 'project_edit.html', {
+                'task': task,
+                'form': form,
+                'formset_imagenes': formset_imagenes,
+                'error': "Error al actualizar proyecto"
+            })
+
 
 def Proyectos_publicado(request):
     task = Proyecto.objects.filter(Estatus_de_proyecto = 'Si').order_by('-FechaDeAgregado')

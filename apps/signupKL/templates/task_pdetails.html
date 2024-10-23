@@ -18,7 +18,11 @@
     <h3>Galería de proyecto:</h3>
     <ul>
         {% for imagen in proyecto.imagenes.all %}
-            <li><img src="{{ imagen.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;"></li>
+            {% if imagen.imagen %}
+                <li><img src="{{ imagen.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;"></li>
+            {% else %}
+                <li>No hay imagen asociada</li>
+            {% endif %}
         {% empty %}
             <li>No hay fotos adicionales para este proyecto</li>
         {% endfor %}
