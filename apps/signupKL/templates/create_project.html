@@ -5,10 +5,15 @@
 
     {{error}}
 
-    <form action="{% url 'create_project' %}" method="POST">
+    <form action="{% url 'create_project' %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
-        {{form}}
+        {{ form.as_p }}
+        <h2>Imágenes del proyecto(maximo 3)</h2>
+        {{ formset_imagenes.management_form }}  <!-- Necesario para formsets -->
+        {% for form in formset_imagenes %}
+            {{ form.as_p }}
+        {% endfor %}
 
         <button>
             Guardar

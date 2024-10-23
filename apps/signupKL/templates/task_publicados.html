@@ -1,12 +1,21 @@
 {% extends 'base.html' %}
-
 {% block content %}
+
 {% if user.is_authenticated %}
 <h1>Proyectos Publicados (Esto es una vista del lado de los clientes)</h1>
 <ul>
     {% for Proyecto in task %}
     <li>
-        <h2>{{ Proyecto.titulo }}</h2>
+        <h2>
+            <a href="{% url 'detail_project' Proyecto.id %}">
+                {{ Proyecto.titulo }}
+            </a>
+        </h2>
+        {% if Proyecto.Portada_de_proyecto %}
+            <img src="{{ Proyecto.Portada_de_proyecto.url }}" alt="Portada de {{ Proyecto.titulo }}" style="max-width: 200px;">
+        {% else %}
+            <p>No hay portada disponible</p>
+        {% endif %}
         <p>{{ Proyecto.descripcion }}</p>
         <p>Subido por: {{ Proyecto.Empleado_Responsable }}</p>
         <p>Fecha de subida: {{ Proyecto.FechaDeAgregado }}</p>
@@ -19,7 +28,16 @@
 <ul>
     {% for Proyecto in task %}
     <li>
-        <h2>{{ Proyecto.titulo }}</h2>
+        <h2>
+            <a href="{% url 'detail_project' Proyecto.id %}">
+                {{ Proyecto.titulo }}
+            </a>
+        </h2>
+        {% if Proyecto.Portada_de_proyecto %}
+            <img src="{{ Proyecto.Portada_de_proyecto.url }}" alt="Portada de {{ Proyecto.titulo }}" style="max-width: 200px;">
+        {% else %}
+            <p>No hay portada disponible</p>
+        {% endif %}
         <p>{{ Proyecto.descripcion }}</p>
     </li>
     {% endfor %}

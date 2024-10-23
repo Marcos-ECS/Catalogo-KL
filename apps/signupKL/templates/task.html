@@ -7,6 +7,11 @@
     <li>
         <a href="{% url 'project_edit' Proyecto.id %}">
         <h1>{{Proyecto.titulo}}</h1></a>
+        {% if Proyecto.Portada_de_proyecto %}
+            <img src="{{ Proyecto.Portada_de_proyecto.url }}" alt="Portada de {{ Proyecto.titulo }}" style="max-width: 200px;">
+        {% else %}
+            <p>No hay portada disponible</p>
+        {% endif %}
         {% if Proyecto.Estatus_de_proyecto == 'Si' %}
             <p>Estatus: <strong>Activo</strong></p>
         {% else %}

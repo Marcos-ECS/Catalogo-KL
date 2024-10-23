@@ -5,8 +5,8 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.db import IntegrityError
 from django.contrib import messages
-from .forms import ProyectoFormulario, RegistroFormulario
-from .models import Proyecto 
+from .forms import ProyectoFormulario, RegistroFormulario, ImagenesdeProyectoFormSet
+from .models import Proyecto, ImagenesdeProyecto 
 from django.contrib.auth.decorators import login_required
 # Create your views here.
 #Registro de usuaurios
@@ -43,19 +43,33 @@ def task(request):
 @login_required
 def crear_proyectos(request):
      if request.method == 'GET':
+         form_proyecto = ProyectoFormulario()
+         formset_imagenes = ImagenesdeProyectoFormSet(queryset=ImagenesdeProyecto.objects.none())
          return render(request, 'create_project.html', {
-             'form': ProyectoFormulario
+             'form': ProyectoFormulario, 'formset_imagenes': formset_imagenes
      })
      else:
         try:
-            form = ProyectoFormulario(request.POST)
-            new_project = form.save(commit=False)
-            new_project.Empleado_Responsable = request.user
-            new_project.save()
+            form_proyecto = ProyectoFormulario(request.POST, request.FILES)
+            formset_imagenes = ImagenesdeProyectoFormSet(request.POST, request.FILES)
+
+            #Guardar nuevo proyecto
+            if form_proyecto.is_valid() and formset_imagenes.is_valid():
+                new_project = form_proyecto.save(commit=False)
+                new_project.Empleado_Responsable = request.user
+                new_project.save()
+
+                # Guardar las imágenes del formset asociadas al nuevo proyecto
+                for form in formset_imagenes:
+                    imagen_proyecto = form.save(commit=False)
+                    imagen_proyecto.proyecto = new_project  # Asignar el proyecto a la imagen
+                    imagen_proyecto.save()
+
             return redirect ('task')
         except ValueError:
              return render(request, 'create_project.html', {
-                'form': ProyectoFormulario,
+                'form': form_proyecto,
+                'formset_imagenes': formset_imagenes,
                 'error': 'Por favor proporcione datos validos'
         })
 
@@ -68,7 +82,7 @@ def Editar_proyectos(request, project_id):
      else:
          try:
              task = get_object_or_404(Proyecto, pk=project_id)
-             form = ProyectoFormulario(request.POST, instance=task)
+             form = ProyectoFormulario(request.POST, request.FILES, instance=task)
              form.save()
              return redirect('task')
          except ValueError:
@@ -83,6 +97,11 @@ def Proyectos_publicado(request):
 #     if request.method == 'POST':
 #         task.delete()
 #         return redirect('task')
+
+def Detalles_proyecto(request, project_id):
+    # Obtener el proyecto o lanzar un error 404 si no existe
+    proyecto = get_object_or_404(Proyecto, pk=project_id)
+    return render(request, 'task_pdetails.html', {'proyecto': proyecto})
 
 def logoutkl(request):
      logout(request)

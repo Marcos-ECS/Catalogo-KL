@@ -1,18 +1,21 @@
 from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Proyecto
+from django.forms import modelformset_factory
+from .models import Proyecto, ImagenesdeProyecto
 
 class ProyectoFormulario(ModelForm):
     class Meta:
         model = Proyecto
-        fields = ['titulo', 'descripcion', 'Estatus_de_proyecto']
+        fields = ['titulo', 'Portada_de_proyecto','descripcion', 'Estatus_de_proyecto']
 
     def __init__(self, *args, **kwargs):
         super(ProyectoFormulario, self).__init__(*args, **kwargs)
         # Excluir 'Estatus_de_proyecto' si el formulario es para crear un proyecto
         if kwargs.get('instance') is None:  # Es un proyecto nuevo (no existe instancia)
             self.fields.pop('Estatus_de_proyecto')
+
+ImagenesdeProyectoFormSet = modelformset_factory(ImagenesdeProyecto, fields=('imagen',), extra=3)  # Puedes ajustar 'extra'
 
 class RegistroFormulario(UserCreationForm):
     class Meta:
