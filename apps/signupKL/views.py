@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.db import IntegrityError
 from django.contrib import messages
-from .forms import ProyectoFormulario, RegistroFormulario, ImagenesdeProyectoFormSet
+from .forms import ProyectoFormulario, RegistroFormulario, ImagenesdeProyectoFormSetCrear, ImagenesdeProyectoFormSetEditar
 from .models import Proyecto, ImagenesdeProyecto 
 from django.contrib.auth.decorators import login_required
 # Create your views here.
@@ -44,14 +44,14 @@ def task(request):
 def crear_proyectos(request):
      if request.method == 'GET':
          form_proyecto = ProyectoFormulario()
-         formset_imagenes = ImagenesdeProyectoFormSet(queryset=ImagenesdeProyecto.objects.none())
+         formset_imagenes = ImagenesdeProyectoFormSetCrear(queryset=ImagenesdeProyecto.objects.none())
          return render(request, 'create_project.html', {
              'form': ProyectoFormulario, 'formset_imagenes': formset_imagenes
      })
      else:
         try:
             form_proyecto = ProyectoFormulario(request.POST, request.FILES)
-            formset_imagenes = ImagenesdeProyectoFormSet(request.POST, request.FILES)
+            formset_imagenes = ImagenesdeProyectoFormSetCrear(request.POST, request.FILES)
 
             #Guardar nuevo proyecto
             if form_proyecto.is_valid() and formset_imagenes.is_valid():
@@ -79,14 +79,14 @@ def Editar_proyectos(request, project_id):
     
     if request.method == 'GET':
         form = ProyectoFormulario(instance=task)
-        formset_imagenes = ImagenesdeProyectoFormSet(queryset=ImagenesdeProyecto.objects.filter(proyecto=task))  # Cargar imágenes actuales
+        formset_imagenes = ImagenesdeProyectoFormSetEditar(queryset=ImagenesdeProyecto.objects.filter(proyecto=task))  # Cargar imágenes actuales
         return render(request, 'project_edit.html', {'task': task, 'form': form, 'formset_imagenes': formset_imagenes})
     
     else:
         try:
             # Procesar el formulario del proyecto
             form = ProyectoFormulario(request.POST, request.FILES, instance=task)
-            formset_imagenes = ImagenesdeProyectoFormSet(request.POST, request.FILES, queryset=ImagenesdeProyecto.objects.filter(proyecto=task))
+            formset_imagenes = ImagenesdeProyectoFormSetEditar(request.POST, request.FILES, queryset=ImagenesdeProyecto.objects.filter(proyecto=task))
             
             if form.is_valid() and formset_imagenes.is_valid():
                 # Guardar cambios en el proyecto (incluyendo el estatus)
@@ -105,8 +105,8 @@ def Editar_proyectos(request, project_id):
                         imagen_proyecto.proyecto = task  # Asignar el proyecto a la imagen
                         imagen_proyecto.save()
 
-                # Guardar los cambios en el formset
-                formset_imagenes.save()
+                # Guardar los cambios en el formset (posible duplicidad de datos? invenstigar y testear)
+                #formset_imagenes.save()
 
                 return redirect('task')
 

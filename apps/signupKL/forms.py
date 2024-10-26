@@ -16,12 +16,21 @@ class ProyectoFormulario(ModelForm):
         # Excluir 'Estatus_de_proyecto' si el formulario es para crear un proyecto
         if kwargs.get('instance') is None:  # Es un proyecto nuevo (no existe instancia)
             self.fields.pop('Estatus_de_proyecto')
-
-
-ImagenesdeProyectoFormSet = modelformset_factory(
+    
+    
+# Formset para crear proyectos (sin opción de eliminar)
+ImagenesdeProyectoFormSetCrear = modelformset_factory(
     ImagenesdeProyecto,
     fields=('imagen',),
-    extra=3,
+    extra=3,  # Ajustar extra según sea necesario
+    can_delete=False  # No permitir eliminación en la creación
+)
+
+
+ImagenesdeProyectoFormSetEditar = modelformset_factory(
+    ImagenesdeProyecto,
+    fields=('imagen',),
+    extra=1,
     can_delete=True,
     widgets={
         'imagen': forms.ClearableFileInput(attrs={'required': False})  # Hacer el campo no requerido

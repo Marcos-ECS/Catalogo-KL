@@ -21,7 +21,7 @@ class Proyecto(models.Model):
     
 class ImagenesdeProyecto(models.Model):
     proyecto = models.ForeignKey(Proyecto, related_name='imagenes', on_delete=models.CASCADE)
-    imagen = models.ImageField(upload_to='proyectos_galeria/')
+    imagen = models.ImageField(default='sample_images/01sample_galeria_v1.png', upload_to='proyectos_galeria/')
 
     class Meta:
         verbose_name_plural = 'Galería de proyectos' 

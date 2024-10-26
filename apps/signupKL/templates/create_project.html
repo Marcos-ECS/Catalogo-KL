@@ -9,14 +9,16 @@
         {% csrf_token %}
 
         {{ form.as_p }}
-        <h2>Imágenes del proyecto(maximo 3)</h2>
+        <h2>Imágenes del proyecto(En caso de dejar en blanco, se subira imagenes de muestra, solo aplica en la creacion del proyecto)</h2>
         {{ formset_imagenes.management_form }}  <!-- Necesario para formsets -->
         {% for form in formset_imagenes %}
             {{ form.as_p }}
+            
         {% endfor %}
 
         <button>
             Guardar
         </button>
     </form>
+
 {% endblock %}
