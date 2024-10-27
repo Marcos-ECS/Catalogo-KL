@@ -5,8 +5,8 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.db import IntegrityError
 from django.contrib import messages
-from .forms import ProyectoFormulario, RegistroFormulario
-from .models import Proyecto 
+from .forms import ProyectoFormulario, RegistroFormulario, ImagenesdeProyectoFormSetCrear, ImagenesdeProyectoFormSetEditar
+from .models import Proyecto, ImagenesdeProyecto 
 from django.contrib.auth.decorators import login_required
 # Create your views here.
 #Registro de usuaurios
@@ -43,36 +43,92 @@ def task(request):
 @login_required
 def crear_proyectos(request):
      if request.method == 'GET':
+         form_proyecto = ProyectoFormulario()
+         formset_imagenes = ImagenesdeProyectoFormSetCrear(queryset=ImagenesdeProyecto.objects.none())
          return render(request, 'create_project.html', {
-             'form': ProyectoFormulario
+             'form': ProyectoFormulario, 'formset_imagenes': formset_imagenes
      })
      else:
         try:
-            form = ProyectoFormulario(request.POST)
-            new_project = form.save(commit=False)
-            new_project.Empleado_Responsable = request.user
-            new_project.save()
+            form_proyecto = ProyectoFormulario(request.POST, request.FILES)
+            formset_imagenes = ImagenesdeProyectoFormSetCrear(request.POST, request.FILES)
+
+            #Guardar nuevo proyecto
+            if form_proyecto.is_valid() and formset_imagenes.is_valid():
+                new_project = form_proyecto.save(commit=False)
+                new_project.Empleado_Responsable = request.user
+                new_project.save()
+
+                # Guardar las imágenes del formset asociadas al nuevo proyecto
+                for form in formset_imagenes:
+                    imagen_proyecto = form.save(commit=False)
+                    imagen_proyecto.proyecto = new_project  # Asignar el proyecto a la imagen
+                    imagen_proyecto.save()
+
             return redirect ('task')
         except ValueError:
              return render(request, 'create_project.html', {
-                'form': ProyectoFormulario,
+                'form': form_proyecto,
+                'formset_imagenes': formset_imagenes,
                 'error': 'Por favor proporcione datos validos'
         })
 
 @login_required        
 def Editar_proyectos(request, project_id):
-     if request.method == 'GET':
-        task = get_object_or_404(Proyecto, pk=project_id)
+    task = get_object_or_404(Proyecto, pk=project_id)
+    
+    if request.method == 'GET':
         form = ProyectoFormulario(instance=task)
-        return render(request, 'project_edit.html', {'task':task, 'form': form})
-     else:
-         try:
-             task = get_object_or_404(Proyecto, pk=project_id)
-             form = ProyectoFormulario(request.POST, instance=task)
-             form.save()
-             return redirect('task')
-         except ValueError:
-             return render(request, 'project_edit.html',{'task':task, 'form':form, 'error': "Error al actualizar proyecto"})
+        formset_imagenes = ImagenesdeProyectoFormSetEditar(queryset=ImagenesdeProyecto.objects.filter(proyecto=task))  # Cargar imágenes actuales
+        return render(request, 'project_edit.html', {'task': task, 'form': form, 'formset_imagenes': formset_imagenes})
+    
+    else:
+        try:
+            # Procesar el formulario del proyecto
+            form = ProyectoFormulario(request.POST, request.FILES, instance=task)
+            formset_imagenes = ImagenesdeProyectoFormSetEditar(request.POST, request.FILES, queryset=ImagenesdeProyecto.objects.filter(proyecto=task))
+            
+            if form.is_valid() and formset_imagenes.is_valid():
+                # Guardar cambios en el proyecto (incluyendo el estatus)
+                form.save()
+
+                # Procesar las imágenes en el formset
+                for form in formset_imagenes:
+                    imagen_proyecto = form.save(commit=False)
+
+                    # Verificar si la imagen está marcada para eliminar
+                    if form.cleaned_data.get('DELETE'):
+                        if imagen_proyecto.pk:  # Si existe en la BD, eliminarla
+                            imagen_proyecto.delete()
+                    # Guardar solo si hay una imagen nueva
+                    elif form.cleaned_data.get('imagen'):
+                        imagen_proyecto.proyecto = task  # Asignar el proyecto a la imagen
+                        imagen_proyecto.save()
+
+                # Guardar los cambios en el formset (posible duplicidad de datos? invenstigar y testear)
+                #formset_imagenes.save()
+
+                return redirect('task')
+
+            else:
+                # Mostrar los errores del formulario y del formset
+                return render(request, 'project_edit.html', {
+                    'task': task,
+                    'form': form,
+                    'formset_imagenes': formset_imagenes,
+                    'error': "Error al actualizar el proyecto",
+                    'form_errors': form.errors,
+                    'formset_errors': formset_imagenes.errors,
+                })
+
+        except ValueError:
+            return render(request, 'project_edit.html', {
+                'task': task,
+                'form': form,
+                'formset_imagenes': formset_imagenes,
+                'error': "Error al actualizar proyecto"
+            })
+
 
 def Proyectos_publicado(request):
     task = Proyecto.objects.filter(Estatus_de_proyecto = 'Si').order_by('-FechaDeAgregado')
@@ -83,6 +139,11 @@ def Proyectos_publicado(request):
 #     if request.method == 'POST':
 #         task.delete()
 #         return redirect('task')
+
+def Detalles_proyecto(request, project_id):
+    # Obtener el proyecto o lanzar un error 404 si no existe
+    proyecto = get_object_or_404(Proyecto, pk=project_id)
+    return render(request, 'task_pdetails.html', {'proyecto': proyecto})
 
 def logoutkl(request):
      logout(request)

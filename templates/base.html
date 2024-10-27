@@ -14,6 +14,7 @@
                 <a href="{% url 'home' %}">Inicio</a>
             </li>
             {% if user.is_authenticated %}
+            <p>Bienvenido, {{ user.username }}</p>
             <li>
                 <a href="/signupKL">Registar usuarios nuevos</a>
             </li>

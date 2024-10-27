@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{{ proyecto.titulo }}</h1>
+    
+    <!-- Verificar si el proyecto tiene una portada -->
+    {% if proyecto.Portada_de_proyecto %}
+        <img src="{{ proyecto.Portada_de_proyecto.url }}" alt="Portada de {{ proyecto.titulo }}" style="max-width: 300px;">
+    {% else %}
+        <p>No hay portada disponible</p>
+    {% endif %}
+
+    <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
+    <p><strong>Fecha de agregado:</strong> {{ proyecto.FechaDeAgregado }}</p>
+    <p><strong>Fecha de realización:</strong> {{ proyecto.Fecha_De_Realizacion }}</p>
+    
+    <!-- Si tienes una galería de imágenes -->
+    <h3>Galería de proyecto:</h3>
+    <ul>
+        {% for imagen in proyecto.imagenes.all %}
+            {% if imagen.imagen %}
+                <li><img src="{{ imagen.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;"></li>
+            {% else %}
+                <li>No hay imagen asociada</li>
+            {% endif %}
+        {% empty %}
+            <li>No hay fotos adicionales para este proyecto</li>
+        {% endfor %}
+    </ul>
+
+    <p><strong>Empleado responsable:</strong> {{ proyecto.Empleado_Responsable }}</p>
+    {% if user.is_authenticated %}
+        <a href="{% url 'task' %}">Volver a la lista de proyectos</a>
+    {% else %}
+        <a href="{% url 'published_projects' %}">Volver a la lista de proyectos</a>
+    {% endif %}
+{% endblock %}
