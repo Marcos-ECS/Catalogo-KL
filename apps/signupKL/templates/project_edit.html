@@ -1,45 +1,78 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Editar proyecto: {{task.titulo}}</h1>
+{% load static %}
+<h1>
+    {% if es_creador %}
+        Editar proyecto: {{ task.titulo }}
+    {% else %}
+        Ver proyecto: {{ task.titulo }}
+    {% endif %}
+</h1>
 
-{{ error }}
+<!-- Mensaje de error (si existe) -->
+{% if error %}
+    <p style="color: red;">{{ error }}</p>
+{% endif %}
 
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% if es_creador %}
+        {{ form.as_p }}
+    {% else %}
+        <p><strong>Descripción:</strong> {{ descripcion }}</p>
+        <p><strong>Fecha de agregado:</strong> {{ fecha_de_agregado }}</p>
+        {% if task.Portada_de_proyecto %}
+            <h2>Portada del proyecto:</h2>
+            <img src="{{ task.Portada_de_proyecto.url }}" alt="Portada de {{ task.titulo }}" style="max-width: 300px;">
+        {% else %}
+            <p>No hay portada disponible.</p>
+        {% endif %}
+    {% endif %}
 
-    <h2>Galería de imágenes(Recuerda cambiar o eliminar las imagenes de muestra) </h2>
+    <h2>Galería de imágenes</h2>
     {{ formset_imagenes.management_form }}
 
     <ul>
         {% for form in formset_imagenes %}
             <li>
-                {{ form.as_p }}  <!-- Mostrar la imagen actual y el campo para subir nuevas -->
+                {% if es_creador %}
+                    <!-- Muestra las primeras 3 imágenes con el sample si no hay imagen cargada -->
+                    {% if forloop.counter <= 3 %}
+                        {% if form.instance.imagen %}
+                            <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;">
+                            <p>Imagen cargada por el usuario</p>
+                        {% else %}
+                            <img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" style="max-width: 150px;">
+                            <p>Imagen de muestra (sin imagen del usuario)</p>
+                        {% endif %}
+                    {% else %}
+                        <!-- Espacio adicional sin sample -->
+                        {% if form.instance.imagen %}
+                            <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;">
+                        {% else %}
+                            <p>Espacio opcional para una imagen adicional (sin imagen de muestra).</p>
+                        {% endif %}
+                    {% endif %}
+                    {{ form.as_p }}
+                {% else %}
+                    <!-- Muestra siempre las imágenes de muestra si no es el creador -->
+                    {% if form.instance.imagen %}
+                        <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;">
+                    {% else %}
+                        <img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" style="max-width: 150px;">
+                    {% endif %}
+                {% endif %}
             </li>
         {% endfor %}
     </ul>
 
-    <button type="submit">Actualizar</button>
+    <!-- Botón de guardar solo si el usuario es el creador -->
+    {% if es_creador %}
+        <button type="submit">Actualizar</button>
+    {% else %}
+        <p style="color: red;">Estás viendo este proyecto en modo de solo lectura. Iniciar sesión con la cuenta correcta</p>
+    {% endif %}
+
 </form>
-
-<!-- Mostrar errores del formulario del proyecto -->
-{% if form_errors %}
-    <ul>
-        {% for field, error in form_errors.items %}
-            <li>{{ field }}: {{ error }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-
-<!-- Mostrar errores del formset de imágenes -->
-{% if formset_errors %}
-    <ul>
-        {% for error in formset_errors %}
-            <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-
-
 
 {% endblock %}

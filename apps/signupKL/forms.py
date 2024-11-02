@@ -37,6 +37,15 @@ ImagenesdeProyectoFormSetEditar = modelformset_factory(
     }
 )
 
+# formset para proyectos en donde el usuario no es el autor
+ImagenesdeProyectoFormSetSoloLectura = modelformset_factory(
+    ImagenesdeProyecto,
+    fields=('imagen',),
+    extra=0,  # No agregar espacios adicionales
+    can_delete=False  # No permitir eliminar en modo solo lectura
+)
+
+
 class RegistroFormulario(UserCreationForm):
     class Meta:
         model = User

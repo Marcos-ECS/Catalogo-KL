@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
     <h1>{{ proyecto.titulo }}</h1>
     
@@ -14,6 +14,7 @@
     <p><strong>Fecha de agregado:</strong> {{ proyecto.FechaDeAgregado }}</p>
     <p><strong>Fecha de realización:</strong> {{ proyecto.Fecha_De_Realizacion }}</p>
     
+    <a href="{% url 'descargar_proyecto_pdf' project_id=proyecto.id %}" class="btn btn-primary">Descargar en PDF</a>
     <!-- Si tienes una galería de imágenes -->
     <h3>Galería de proyecto:</h3>
     <ul>
@@ -21,14 +22,16 @@
             {% if imagen.imagen %}
                 <li><img src="{{ imagen.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;"></li>
             {% else %}
-                <li>No hay imagen asociada</li>
+            
+            <li><img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" style="max-width: 150px;"></li>
             {% endif %}
         {% empty %}
             <li>No hay fotos adicionales para este proyecto</li>
         {% endfor %}
     </ul>
-
+    
     <p><strong>Empleado responsable:</strong> {{ proyecto.Empleado_Responsable }}</p>
+
     {% if user.is_authenticated %}
         <a href="{% url 'task' %}">Volver a la lista de proyectos</a>
     {% else %}

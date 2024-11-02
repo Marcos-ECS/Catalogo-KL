@@ -2,6 +2,8 @@
 {% block content %}
 <h1>Menú de proyectos(Editar, habilitar o deshabilitar proyecto)</h1>
 
+<a href="{% url 'descargar_csv' %}" class="btn btn-primary">Descargar lista de proyectos (CSV)</a>
+
 {% for Proyecto in task %}
 
     <li>
