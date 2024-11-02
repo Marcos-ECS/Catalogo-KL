@@ -251,6 +251,6 @@ def descargar_csv(request):
             #proyecto.Fecha_De_Realizacion,
             proyecto.get_Estatus_de_proyecto_display(),
             proyecto.Empleado_Responsable.username
-        ])gi
+        ])
 
     return response
