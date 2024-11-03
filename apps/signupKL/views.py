@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import csv
+from .filters import ProyectoFilter
 
 # Create your views here.
 #Registro de usuaurios
@@ -41,8 +42,9 @@ def signup(request):
     
 @login_required    
 def task(request):
-     task = Proyecto.objects.all().order_by('-FechaDeAgregado')
-     return render(request, 'task.html', {'task': task})
+    proyectos = Proyecto.objects.all().order_by('-FechaDeAgregado')
+    task = ProyectoFilter(request.GET, queryset=proyectos)
+    return render(request, 'task.html', {'task': task})
 
 @login_required
 def crear_proyectos(request):

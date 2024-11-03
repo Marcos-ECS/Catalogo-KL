@@ -33,7 +33,7 @@
     <p><strong>Empleado responsable:</strong> {{ proyecto.Empleado_Responsable }}</p>
 
     {% if user.is_authenticated %}
-        <a href="{% url 'task' %}">Volver a la lista de proyectos</a>
+        <a href="{% url 'published_projects' %}">Volver a la lista de proyectos</a>
     {% else %}
         <a href="{% url 'published_projects' %}">Volver a la lista de proyectos</a>
     {% endif %}

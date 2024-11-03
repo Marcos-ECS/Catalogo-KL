@@ -40,17 +40,15 @@
                     {% if forloop.counter <= 3 %}
                         {% if form.instance.imagen %}
                             <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;">
-                            <p>Imagen cargada por el usuario</p>
                         {% else %}
                             <img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" style="max-width: 150px;">
-                            <p>Imagen de muestra (sin imagen del usuario)</p>
                         {% endif %}
                     {% else %}
                         <!-- Espacio adicional sin sample -->
                         {% if form.instance.imagen %}
                             <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;">
                         {% else %}
-                            <p>Espacio opcional para una imagen adicional (sin imagen de muestra).</p>
+                            <p>Agregar una imagen nueva</p>
                         {% endif %}
                     {% endif %}
                     {{ form.as_p }}
@@ -74,5 +72,6 @@
     {% endif %}
 
 </form>
+<a href="{% url 'task' %}">Volver a la lista de proyectos</a>
 
 {% endblock %}

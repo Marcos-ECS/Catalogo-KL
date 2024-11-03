@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.login_users',
     #'apps.upload_projects',
     #'apps.user_profile',
+    'django_filters',
     'apps.signupKL',
 ]
 
