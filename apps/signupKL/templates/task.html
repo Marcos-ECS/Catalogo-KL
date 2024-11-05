@@ -33,7 +33,7 @@
                 <p>Estatus: <strong>Inactivo</strong></p>
             {% endif %}
             <p>Descripcion: {{ Proyecto.descripcion }}</p>
-            <p>Subido por: {{ Proyecto.Empleado_Responsable }}</p>
+            <p>Subido por: {{ Proyecto.Empleado_Responsable.first_name }} {{ Proyecto.Empleado_Responsable.last_name }}</p>
             <p>Fecha de subida: {{ Proyecto.FechaDeAgregado }}</p>
         </li>   
     {% empty %}

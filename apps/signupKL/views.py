@@ -12,6 +12,9 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import csv
 from .filters import ProyectoFilter
+from django.contrib.auth.forms import UserChangeForm
+from .forms import PerfilUsuarioForm
+
 
 # Create your views here.
 #Registro de usuaurios
@@ -256,3 +259,22 @@ def descargar_csv(request):
         ])
 
     return response
+
+#Perfil de usuario registrado
+@login_required
+def perfil(request):
+    return render(request, 'profile.html', {'usuario': request.user})
+
+#Editar perfil
+@login_required
+def editar_perfil(request):
+    if request.method == 'POST':
+        form = PerfilUsuarioForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil actualizado correctamente.')
+            return redirect('perfil')
+    else:
+        form = PerfilUsuarioForm(instance=request.user)
+    
+    return render(request, 'editar_perfil.html', {'form': form})

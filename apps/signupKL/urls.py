@@ -18,6 +18,10 @@ urlpatterns = [
     path('descargar_csv/', views.descargar_csv, name='descargar_csv'),
     #path('task/<int:project_id>/delete', views.Borrar_proyecto, name='delete_project'),
     path('logout/', views.logoutkl, name='logoutkl'),
+    path('perfil/', views.perfil, name='perfil'),
+    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+
+
 ]
 
 if settings.DEBUG:

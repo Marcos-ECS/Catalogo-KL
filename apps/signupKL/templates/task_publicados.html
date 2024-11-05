@@ -16,8 +16,8 @@
         {% else %}
             <p>No hay portada disponible</p>
         {% endif %}
-        <p>{{ Proyecto.descripcion }}</p>
-        <p>Subido por: {{ Proyecto.Empleado_Responsable }}</p>
+        <p>Descripcion: {{ Proyecto.descripcion }}</p>
+        <p>Subido por: {{ Proyecto.Empleado_Responsable.first_name }} {{ Proyecto.Empleado_Responsable.last_name }}</p>
         <p>Fecha de subida: {{ Proyecto.FechaDeAgregado }}</p>
     </li>
     {% endfor %}
@@ -38,7 +38,7 @@
         {% else %}
             <p>No hay portada disponible</p>
         {% endif %}
-        <p>{{ Proyecto.descripcion }}</p>
+        <p>Descripcion: {{ Proyecto.descripcion }}</p>
     </li>
     {% endfor %}
 </ul>
