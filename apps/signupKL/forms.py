@@ -6,6 +6,7 @@ from .models import Proyecto, ImagenesdeProyecto
 from django import forms
 
 
+
 class ProyectoFormulario(ModelForm):
     class Meta:
         model = Proyecto
@@ -37,6 +38,15 @@ ImagenesdeProyectoFormSetEditar = modelformset_factory(
     }
 )
 
+# formset para proyectos en donde el usuario no es el autor
+ImagenesdeProyectoFormSetSoloLectura = modelformset_factory(
+    ImagenesdeProyecto,
+    fields=('imagen',),
+    extra=0,  # No agregar espacios adicionales
+    can_delete=False  # No permitir eliminar en modo solo lectura
+)
+
+
 class RegistroFormulario(UserCreationForm):
     class Meta:
         model = User
@@ -51,3 +61,14 @@ class RegistroFormulario(UserCreationForm):
         self.fields['password1'].label = 'Contraseña'  # Cambia el label de password1
         self.fields['password2'].label = 'Confirmar contraseña'  # Cambia el label de password2
 
+
+class PerfilUsuarioForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']  # Solo incluye los campos que deseas mostrar
+        labels = {
+            'username': 'Nombre de usuario',
+            'first_name': 'Nombre',
+            'last_name': 'Apellido',
+            'email': 'Correo electrónico',
+        }

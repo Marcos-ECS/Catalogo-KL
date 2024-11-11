@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Perfil de Usuario</h1>
+<a href="{% url 'editar_perfil' %}" class="btn btn-warning">Editar Perfil</a>
+
+<div class="perfil">
+    <p><strong>Nombre de usuario:</strong> {{ usuario.username }}</p>
+    <p><strong>Nombre:</strong> {{ usuario.first_name }}</p>
+    <p><strong>Apellido:</strong> {{ usuario.last_name }}</p>
+    <p><strong>Correo electrónico:</strong> {{ usuario.email }}</p>
+    <p><strong>Fecha de registro:</strong> {{ usuario.date_joined|date:"d M Y" }}</p>
+</div>
+
+<a href="{% url 'task' %}" class="btn btn-primary">Volver a la lista de proyectos</a>
+
+{% endblock %}

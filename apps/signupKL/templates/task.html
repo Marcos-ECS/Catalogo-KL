@@ -1,26 +1,43 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Menú de proyectos(Editar, habilitar o deshabilitar proyecto)</h1>
+<h1>Menú de proyectos (Editar, habilitar o deshabilitar proyecto)</h1>
 
-{% for Proyecto in task %}
+<!-- Formulario de búsqueda -->
+<form method="get" style="margin-top: 20px;">
+    {{ task.form.titulo.label_tag }}
+    {{ task.form.titulo }}
+    
+    {{ task.form.estatus.label_tag }}
+    {{ task.form.estatus }}
+    
+    <button type="submit" class="btn btn-primary">Buscar</button>
+    <a href="{% url 'task' %}" class="btn btn-secondary">Limpiar filtro</a>
+</form>
 
-    <li>
-        <a href="{% url 'project_edit' Proyecto.id %}">
-        <h1>{{Proyecto.titulo}}</h1></a>
-        {% if Proyecto.Portada_de_proyecto %}
-            <img src="{{ Proyecto.Portada_de_proyecto.url }}" alt="Portada de {{ Proyecto.titulo }}" style="max-width: 200px;">
-        {% else %}
-            <p>No hay portada disponible</p>
-        {% endif %}
-        {% if Proyecto.Estatus_de_proyecto == 'Si' %}
-            <p>Estatus: <strong>Activo</strong></p>
-        {% else %}
-            <p>Estatus: <strong>Inactivo</strong></p>
-        {% endif %}
-        <p>Descripcion: {{Proyecto.descripcion}}</p>
-        <p>Subido por: {{Proyecto.Empleado_Responsable}}</p>
-        <p>Fecha de subida: {{ Proyecto.FechaDeAgregado }}</p>
-    </li>   
-{% endfor %}
+<!-- Botón para descargar el CSV -->
+<a href="{% url 'descargar_csv' %}" class="btn btn-primary">Descargar lista de proyectos (CSV)</a>
+
+<!-- Resultados de proyectos -->
+    {% for Proyecto in task.qs %}
+        <li>
+            <a href="{% url 'project_edit' Proyecto.id %}">
+            <h1>{{ Proyecto.titulo }}</h1></a>
+            {% if Proyecto.Portada_de_proyecto %}
+                <img src="{{ Proyecto.Portada_de_proyecto.url }}" alt="Portada de {{ Proyecto.titulo }}" style="max-width: 200px;">
+            {% else %}
+                <p>No hay portada disponible</p>
+            {% endif %}
+            {% if Proyecto.Estatus_de_proyecto == 'Si' %}
+                <p>Estatus: <strong>Activo</strong></p>
+            {% else %}
+                <p>Estatus: <strong>Inactivo</strong></p>
+            {% endif %}
+            <p>Descripcion: {{ Proyecto.descripcion }}</p>
+            <p>Subido por: {{ Proyecto.Empleado_Responsable.first_name }} {{ Proyecto.Empleado_Responsable.last_name }}</p>
+            <p>Fecha de subida: {{ Proyecto.FechaDeAgregado }}</p>
+        </li>   
+    {% empty %}
+        <li>No se encontraron proyectos que coincidan con la búsqueda.</li>
+    {% endfor %}
 
 {% endblock %}
