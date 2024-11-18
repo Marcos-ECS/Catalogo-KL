@@ -1,14 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Iniciar sesion</h1>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
+        <h2 class="card-title text-center mb-4">Iniciar Sesión</h2>
 
-{{error}}
+        {% if error %}
+            <div class="alert alert-warning" role="alert">
+                {{ error }}
+            </div>
+        {% endif %}
 
-<form action="" method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button>
-        Iniciar sesion
-    </button>
-</form>
+        <form action="" method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary w-100 mt-3">Iniciar Sesión</button>
+        </form>
+
+        <div class="alert alert-info mt-3" role="alert">
+            En caso de no tener cuenta, favor de ponerse en contacto con el Administrador.
+        </div>
+    </div>
+</div>
 {% endblock %}

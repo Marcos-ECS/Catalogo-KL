@@ -1,77 +1,83 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-<h1>
-    {% if es_creador %}
-        Editar proyecto: {{ task.titulo }}
-    {% else %}
-        Ver proyecto: {{ task.titulo }}
-    {% endif %}
-</h1>
-
-<!-- Mensaje de error (si existe) -->
-{% if error %}
-    <p style="color: red;">{{ error }}</p>
-{% endif %}
-
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {% if es_creador %}
-        {{ form.as_p }}
-    {% else %}
-        <p><strong>Descripción:</strong> {{ descripcion }}</p>
-        <p><strong>Fecha de agregado:</strong> {{ fecha_de_agregado }}</p>
-        {% if task.Portada_de_proyecto %}
-            <h2>Portada del proyecto:</h2>
-            <img src="{{ task.Portada_de_proyecto.url }}" alt="Portada de {{ task.titulo }}" style="max-width: 300px;">
+<div class="container mt-4">
+    <h1 class="text-center mb-4">
+        {% if es_creador %}
+            Editar proyecto: {{ task.titulo }}
         {% else %}
-            <p>No hay portada disponible.</p>
+            Ver proyecto: {{ task.titulo }}
         {% endif %}
+    </h1>
+
+    <!-- Mensaje de error (si existe) -->
+    {% if error %}
+        <div class="alert alert-warning" role="alert">
+            {{ error }}
+        </div>
     {% endif %}
 
-    <h2>Galería de imágenes</h2>
-    {{ formset_imagenes.management_form }}
-
-    <ul>
-        {% for form in formset_imagenes %}
-            <li>
-                {% if es_creador %}
-                    <!-- Muestra las primeras 3 imágenes con el sample si no hay imagen cargada -->
-                    {% if forloop.counter <= 3 %}
-                        {% if form.instance.imagen %}
-                            <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;">
-                        {% else %}
-                            <img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" style="max-width: 150px;">
-                        {% endif %}
-                    {% else %}
-                        <!-- Espacio adicional sin sample -->
-                        {% if form.instance.imagen %}
-                            <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;">
-                        {% else %}
-                            <p>Agregar una imagen nueva</p>
-                        {% endif %}
-                    {% endif %}
-                    {{ form.as_p }}
+    <form method="POST" enctype="multipart/form-data" class="bg-light p-4 rounded shadow-sm">
+        {% csrf_token %}
+        {% if es_creador %}
+            <div class="mb-4">
+                {{ form.as_p }}
+            </div>
+        {% else %}
+            <div class="mb-4">
+                <p><strong>Descripción:</strong> {{ descripcion|truncatechars:50  }}</p>
+                <p><strong>Fecha de agregado:</strong> {{ fecha_de_agregado }}</p>
+                {% if task.Portada_de_proyecto %}
+                    <h2>Portada del proyecto:</h2>
+                    <img src="{{ task.Portada_de_proyecto.url }}" alt="Portada de {{ task.titulo }}" class="img-fluid mb-3">
                 {% else %}
-                    <!-- Muestra siempre las imágenes de muestra si no es el creador -->
-                    {% if form.instance.imagen %}
-                        <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;">
-                    {% else %}
-                        <img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" style="max-width: 150px;">
-                    {% endif %}
+                    <p>No hay portada disponible.</p>
                 {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
+            </div>
+        {% endif %}
 
-    <!-- Botón de guardar solo si el usuario es el creador -->
-    {% if es_creador %}
-        <button type="submit">Actualizar</button>
-    {% else %}
-        <p style="color: red;">Estás viendo este proyecto en modo de solo lectura. Iniciar sesión con la cuenta correcta</p>
-    {% endif %}
+        <h2 class="mb-3">Galería de imágenes</h2>
+        {{ formset_imagenes.management_form }}
+        <div class="row g-3">
+            {% for form in formset_imagenes %}
+                <div class="col-md-4 text-center">
+                    {% if es_creador %}
+                        {% if forloop.counter <= 3 %}
+                            {% if form.instance.imagen %}
+                                <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" class="img-thumbnail mb-2">
+                            {% else %}
+                                <img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" class="img-thumbnail mb-2">
+                            {% endif %}
+                        {% else %}
+                            {% if form.instance.imagen %}
+                                <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" class="img-thumbnail mb-2">
+                            {% else %}
+                                <p>Agregar una imagen nueva</p>
+                            {% endif %}
+                        {% endif %}
+                        {{ form.as_p }}
+                    {% else %}
+                        {% if form.instance.imagen %}
+                            <img src="{{ form.instance.imagen.url }}" alt="Imagen del proyecto" class="img-thumbnail mb-2">
+                        {% else %}
+                            <img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" class="img-thumbnail mb-2">
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
 
-</form>
-<a href="{% url 'task' %}">Volver a la lista de proyectos</a>
+        <!-- Botón de guardar solo si el usuario es el creador -->
+        {% if es_creador %}
+            <button type="submit" class="btn btn-primary mt-4 w-100">Actualizar</button>
+        {% else %}
+            <div class="alert alert-warning mt-4" role="alert">
+                Estás viendo este proyecto en modo de solo lectura. Iniciar sesión con la cuenta 
+                {{ task.Empleado_Responsable.first_name }} {{ task.Empleado_Responsable.last_name }}.
+            </div>
+        {% endif %}
+    </form>
 
+    <a href="{% url 'task' %}" class="btn btn-secondary mt-4">Volver a la lista de proyectos</a>
+</div>
 {% endblock %}

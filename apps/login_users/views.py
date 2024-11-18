@@ -6,14 +6,14 @@ from .forms import LoginFormulario
 def loginkl(request):
     if request.method == 'GET':
         return render(request, 'loginkl.html',{
-        'form': LoginFormulario()
+        'form': LoginFormulario(), 'container': True 
     })
     else:
         user=authenticate(request, username=request.POST['username'], password=request.POST['password'])
         if user is None:
             return render(request, 'loginkl.html', {
                 'form': LoginFormulario(),
-                'error': 'Usuario o contraseña incorrecta'
+                'error': 'Usuario o contraseña incorrecta', 'container': True 
             })
         else:
             login(request, user)

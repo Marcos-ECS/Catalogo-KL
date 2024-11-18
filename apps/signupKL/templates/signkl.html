@@ -1,14 +1,45 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Registro</h1>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Encabezado -->
+            <h2 class="text-center mb-4">Registro de usuario</h2>
+            
+            <!-- Mensaje de error (si existe) -->
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                {% for field in form %}
+                    {% if field.errors %}
+                        <strong>{{ field.label }}</strong>:
+                        <ul>
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        
 
-{{error}}
-
-<form method="POST">
-    {% csrf_token %}
-    {{form.as_p}}
-    <button>
-        Registrar
-    </button>
-</form>
+            <!-- Formulario de registro -->
+            <div class="card shadow-sm p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    
+                    <button type="submit" class="btn btn-primary w-100">Registrar</button>
+                </form>
+            </div>
+            
+            <!-- Mensaje adicional -->
+            <p class="text-center mt-3">
+                ¿Ya tienes una cuenta? 
+                <a href="{% url 'loginkl' %}" class="text-primary">Inicia sesión aquí</a>.
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}

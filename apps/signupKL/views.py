@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.db import IntegrityError
 from django.contrib import messages
-from .forms import ProyectoFormulario, RegistroFormulario, ImagenesdeProyectoFormSetCrear, ImagenesdeProyectoFormSetEditar, ImagenesdeProyectoFormSetSoloLectura
+from .forms import ProyectoFormulario, RegistroFormulario, ImagenesdeProyectoFormSetCrear, ImagenesdeProyectoFormSetEditar, ImagenesdeProyectoFormSetSoloLectura, UserProfileForm
 from .models import Proyecto, ImagenesdeProyecto 
 from django.contrib.auth.decorators import login_required
 from reportlab.lib.pagesizes import letter
@@ -20,45 +20,36 @@ from .forms import PerfilUsuarioForm
 #Registro de usuaurios
 @login_required
 def signup(request):
-    if request.method == 'GET':
-        return render (request, 'signkl.html',{
-        'form': RegistroFormulario
-        
-    })
+    if request.method == 'POST':
+        form = RegistroFormulario(request.POST)
+        if form.is_valid():
+            # Crear usuario
+            form.save()
+            messages.success(request, 'Usuario registrado correctamente.')
+            return redirect('task')  # Redirigir a la página deseada
+        else:
+            messages.error(request, 'Por favor corrige los errores a continuación.')
     else:
-        if request.POST ['password1'] == request.POST['password2']:
-            try:
-                #registro
-                user = User.objects.create_user(username=request.POST['username'], password=request.POST['password1'])
-                user.save()
-                #login(request, user)
-                return redirect('task')   
-            except IntegrityError:
-                    return render (request, 'signkl.html',{
-                    'form': RegistroFormulario,
-                    "error": 'El usuario ya existe'
-                })
-        return render(request, 'signkl.html',{
-            'form': RegistroFormulario,
-            "error": 'La contraseña no coincide'
-        })
+        form = RegistroFormulario()
     
-@login_required    
+    return render(request, 'signkl.html', {'form': form, 'container': True})
+    
+@login_required(login_url='loginkl')    
 def task(request):
     proyectos = Proyecto.objects.all().order_by('-FechaDeAgregado')
     task = ProyectoFilter(request.GET, queryset=proyectos)
-    return render(request, 'task.html', {'task': task})
+    return render(request, 'task.html', {'task': task, 'container': True})
 
-@login_required
+@login_required(login_url='loginkl')  
 def crear_proyectos(request):
      if request.method == 'GET':
          form_proyecto = ProyectoFormulario()
          formset_imagenes = ImagenesdeProyectoFormSetCrear(queryset=ImagenesdeProyecto.objects.none())
          return render(request, 'create_project.html', {
-             'form': ProyectoFormulario, 'formset_imagenes': formset_imagenes
+             'form': ProyectoFormulario, 'formset_imagenes': formset_imagenes,'container': True 
      })
      else:
-        try:
+       
             form_proyecto = ProyectoFormulario(request.POST, request.FILES)
             formset_imagenes = ImagenesdeProyectoFormSetCrear(request.POST, request.FILES)
 
@@ -74,15 +65,20 @@ def crear_proyectos(request):
                     imagen_proyecto.proyecto = new_project  # Asignar el proyecto a la imagen
                     imagen_proyecto.save()
 
-            return redirect ('task')
-        except ValueError:
-             return render(request, 'create_project.html', {
-                'form': form_proyecto,
-                'formset_imagenes': formset_imagenes,
-                'error': 'Por favor proporcione datos validos'
-        })
+                return redirect ('task')
+            else:
+                # Enviar mensaje de error si la descripción es demasiado corta o hay otros errores
+                if form_proyecto.errors.get('descripcion'):
+                    messages.error(request, "La descripción debe tener al menos 50 caracteres.")
+                    
+                return render(request, 'create_project.html', {
+                    'form': form_proyecto,
+                    'formset_imagenes': formset_imagenes,
+                    'error': 'Por favor proporcione datos válidos', 
+                    'container': True 
+                })
 
-@login_required        
+@login_required(login_url='loginkl')          
 def Editar_proyectos(request, project_id):
     task = get_object_or_404(Proyecto, pk=project_id)
     
@@ -92,7 +88,7 @@ def Editar_proyectos(request, project_id):
     if request.method == 'GET':
         form = ProyectoFormulario(instance=task)
         formset_imagenes = ImagenesdeProyectoFormSetEditar(queryset=ImagenesdeProyecto.objects.filter(proyecto=task))  # Cargar imágenes actuales
-        return render(request, 'project_edit.html', {'task': task, 'form': form, 'formset_imagenes': formset_imagenes, 'es_creador': True})
+        return render(request, 'project_edit.html', {'task': task, 'form': form, 'formset_imagenes': formset_imagenes, 'es_creador': True, 'container': True })
     
     else:
         try:
@@ -144,9 +140,9 @@ def Editar_proyectos(request, project_id):
 
 def Proyectos_publicado(request):
     task = Proyecto.objects.filter(Estatus_de_proyecto = 'Si').order_by('-FechaDeAgregado')
-    return render(request, 'task_publicados.html', {'task': task})
+    return render(request, 'task_publicados.html', {'task': task, 'container': True })
 
-@login_required
+@login_required(login_url='loginkl')  
 def Editar_proyecto_NO_autor(request, project_id):
     # Obtener el proyecto y verificar que exista
     task = get_object_or_404(Proyecto, pk=project_id)
@@ -168,7 +164,7 @@ def Editar_proyecto_NO_autor(request, project_id):
         'es_creador': False,  # Pasar al template que no es el creador
         'descripcion': task.descripcion,
         'fecha_de_agregado': task.FechaDeAgregado,
-        'fecha_de_realizacion': task.Fecha_De_Realizacion,
+        'fecha_de_realizacion': task.Fecha_De_Realizacion, 'container': True, 
     })
 
 
@@ -181,15 +177,16 @@ def Editar_proyecto_NO_autor(request, project_id):
 def Detalles_proyecto(request, project_id):
     # Obtener el proyecto o lanzar un error 404 si no existe
     proyecto = get_object_or_404(Proyecto, pk=project_id)
-    return render(request, 'task_pdetails.html', {'proyecto': proyecto})
+    return render(request, 'task_pdetails.html', {'proyecto': proyecto, 'container': True})
 
+@login_required(login_url='loginkl')  
 def logoutkl(request):
      logout(request)
      messages.info(request, 'Has cerrado la sesion')
      return redirect('home')
 
 #Exportador de PDF
-@login_required
+@login_required(login_url='loginkl')  
 def descargar_proyecto_pdf(request, project_id):
     proyecto = get_object_or_404(Proyecto, pk=project_id)
 
@@ -235,7 +232,7 @@ def descargar_proyecto_pdf(request, project_id):
     return response
 
 #Exportador de CSV
-@login_required
+@login_required(login_url='loginkl')  
 def descargar_csv(request):
     # Crear la respuesta de CSV
     response = HttpResponse(content_type='text/csv')
@@ -261,20 +258,30 @@ def descargar_csv(request):
     return response
 
 #Perfil de usuario registrado
-@login_required
+@login_required(login_url='loginkl')  
 def perfil(request):
-    return render(request, 'profile.html', {'usuario': request.user})
+    return render(request, 'profile.html', {'usuario': request.user, 'container': True})
 
 #Editar perfil
-@login_required
+@login_required(login_url='loginkl')  
 def editar_perfil(request):
+    user_profile = request.user.profile  # Relación OneToOne entre User y UserProfile
     if request.method == 'POST':
-        form = PerfilUsuarioForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
+        # Manejar ambos formularios: datos del usuario y foto de perfil
+        user_form = PerfilUsuarioForm(request.POST, instance=request.user)
+        profile_form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
             messages.success(request, 'Perfil actualizado correctamente.')
             return redirect('perfil')
     else:
-        form = PerfilUsuarioForm(instance=request.user)
-    
-    return render(request, 'editar_perfil.html', {'form': form})
+        user_form = PerfilUsuarioForm(instance=request.user)
+        profile_form = UserProfileForm(instance=user_profile)
+
+    return render(request, 'editar_perfil.html', {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'container': True
+    })

@@ -5,45 +5,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <style>
+        /* Estilo para el dropdown */
+        .dropdown-menu {
+            background-color: #343a40; /* Fondo oscuro para que contraste */
+        }
+        .dropdown-item,
+        .btn-link.nav-link {
+            color: #ffffff !important; /* Texto blanco para visibilidad */
+        }
+        .dropdown-item:hover,
+        .btn-link.nav-link:hover {
+            background-color: #495057; /* Cambia el fondo en hover para mejorar visibilidad */
+            color: #ffffff !important;
+        }
+    </style>
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li>
-                <a href="{% url 'home' %}">Inicio</a>
-            </li>
-            {% if user.is_authenticated %}
-            <p>Bienvenido, {{ user.username }}</p>
+    <!-- Navbar de Bootstrap -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}">KLUGELAB</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        
 
-            <li><a href="{% url 'perfil' %}">Mi perfil</a></li>
-            <li>
-                <a href="/signupKL">Registar usuarios nuevos</a>
-            </li>
-            <li>
-                <a href="/signupKL/task/">Menú de proyectos</a>
-            </li>
-            <li><a href="{% url 'published_projects' %}">Proyectos pulicados(Vista cliente)</a></li>
-            <li>
-                <a href="/signupKL/task/create">Crear proyectos</a>
-            </li>
-            <form method="POST" action="{% url 'logoutkl' %}">
-                {% csrf_token %}
-                <button type="submit">Cerrar sesión</button>
-            </form>
-            
-            {% else %}
-            <li><a href="{% url 'published_projects' %}">Proyectos</a></li>
-            <li>
-                <a href="{% url 'loginkl' %}">Iniciar sesion</a>
-            </li>
-
-            {% endif %}
-        </ul>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="/signupKL/task/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                              Menú de proyectos
+                            </a>
+                            <ul class="dropdown-menu">
+                              <li><a class="dropdown-item" href="/signupKL/task/">Menú general</a></li>
+                              <li><a class="dropdown-item" href="/signupKL/task/create">Crear proyectos</a></li>
+                              <li><a class="dropdown-item" href="{% url 'published_projects' %}">Proyectos publicados</a></li>
+                            </ul>
+                        </li> 
+                        <li class="nav-item">
+                            <a class="nav-link" href="/signupKL">Registrar usuarios nuevos</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="/signupKL/task/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li><a class="dropdown-item" href="{% url 'perfil' %}">Mi perfil </a></li>
+                              <li><a class="dropdown-item" href="{% url 'editar_perfil' %}" >Editar perfil</a></li>
+                              <li><a class="dropdown-item" href="{% url 'logoutkl' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Cerrar sesión</a></li>
+                            </ul>
+                        </li>
+                        <!-- Formulario de cierre de sesión oculto -->
+                        <form id="logout-form" method="POST" action="{% url 'logoutkl' %}" style="display: none;">
+                            {% csrf_token %}
+                        </form>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'published_projects' %}">Proyectos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'loginkl' %}">Iniciar sesión</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
     </nav>
+
+    <!-- Bloque de contenido de la página -->
+     {% if container %}
+        <div class="container mt-4">
+    {% endif %}
+
     {% block content %}
     {% endblock %}
 
+    {% if container %}
+        </div>
+    {% endif %}
+    
 </body>
+<!-- Footer -->
+<footer class="bg-dark text-white mt-4">
+    <div class="container py-4">
+        <div class="row">
+            <!-- Sección de información -->
+            <div class="col-md-4">
+                <h5>Acerca de Klugelab</h5>
+                <p>Innovando en cada proyecto. Nos especializamos en el desarrollo de soluciones tecnológicas adaptadas a tus necesidades.</p>
+            </div>
+
+            <!-- Sección de enlaces rápidos -->
+            <div class="col-md-4">
+                <h5>Enlaces importantes</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'home' %}" class="text-white text-decoration-none">Inicio</a></li>
+                    <li><a href="{% url 'published_projects' %}" class="text-white text-decoration-none">Proyectos publicados</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'perfil' %}" class="text-white text-decoration-none">Mi perfil</a></li>
+                    {% else %}
+                        <li><a href="{% url 'loginkl' %}" class="text-white text-decoration-none">Iniciar sesión</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Sección de contacto o redes sociales -->
+            <div class="col-md-4">
+                <h5>Contáctanos</h5>
+                <p>Email: klugelab@gmail.com</p>
+                <p>Síguenos:</p>
+                <div>
+                    <a href="#" class="text-white text-decoration-none me-3">
+                        <i class="bi bi-facebook"></i> Facebook
+                    </a>
+                    <a href="#" class="text-white text-decoration-none me-3">
+                        <i class="bi bi-twitter"></i> Twitter
+                    </a>
+                    <a href="#" class="text-white text-decoration-none">
+                        <i class="bi bi-instagram"></i> Instagram
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-secondary text-center py-2">
+        <p class="mb-0">&copy; {{ year }} Klugelab. Todos los derechos reservados.</p>
+    </div>
+</footer>
 
 </html>

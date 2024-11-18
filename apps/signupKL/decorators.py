@@ -16,7 +16,7 @@ def usuarios_permitidos(usuarios_permitidos=[]):
                 group = request.user.groups.all()[0].name
 
             if group in usuarios_permitidos:
-                return HttpResponse(request, *args, **kwargs)
+                return view_func(request, *args, **kwargs)
             else:
                 return HttpResponse('Vista no permitida')
         return wrapper_func

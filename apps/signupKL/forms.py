@@ -2,7 +2,7 @@ from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms import modelformset_factory
-from .models import Proyecto, ImagenesdeProyecto
+from .models import Proyecto, ImagenesdeProyecto, UserProfile
 from django import forms
 
 
@@ -17,6 +17,12 @@ class ProyectoFormulario(ModelForm):
         # Excluir 'Estatus_de_proyecto' si el formulario es para crear un proyecto
         if kwargs.get('instance') is None:  # Es un proyecto nuevo (no existe instancia)
             self.fields.pop('Estatus_de_proyecto')
+
+        def clean_descripcion(self):
+            descripcion = self.cleaned_data.get('descripcion')
+            if len(descripcion) < 50:
+                raise forms.ValidationError("La descripción debe tener al menos 50 caracteres.")
+            return descripcion
     
     
 # Formset para crear proyectos (sin opción de eliminar)
@@ -54,7 +60,7 @@ class RegistroFormulario(UserCreationForm):
         labels = {
             'username': 'Nombre de usuario',
             'password1': 'Contraseña',
-            'password2': 'Confirmar contraseña'
+            'password2': 'Confirmar contraseña',
         }
     def __init__(self, *args, **kwargs):
         super(RegistroFormulario, self).__init__(*args, **kwargs)
@@ -65,10 +71,20 @@ class RegistroFormulario(UserCreationForm):
 class PerfilUsuarioForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email']  # Solo incluye los campos que deseas mostrar
+        fields = ['first_name', 'last_name', 'email']  # Solo incluye los campos que deseas mostrar
         labels = {
-            'username': 'Nombre de usuario',
             'first_name': 'Nombre',
             'last_name': 'Apellido',
             'email': 'Correo electrónico',
+        }
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['photo']  # Incluye la foto de perfil
+        labels = {
+            'photo': 'Foto de perfil',
+        }
+        widgets = {
+            'photo': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }

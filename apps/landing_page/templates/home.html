@@ -1,4 +1,22 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-<h1>Home landing</h1>
+<section class="hero-section d-flex align-items-center justify-content-center text-center position-relative" style="height: 80vh;">
+    <!-- Video de fondo -->
+    <video autoplay loop muted playsinline class="w-100 h-100" style="object-fit: cover; position: absolute; top: 0; left: 0; z-index: -1;">
+        <source src="{% static 'video/video-bussines.mp4' %}" type="video/mp4">
+        Tu navegador no soporta el elemento de video.
+    </video>
+
+    <!-- Capa oscura sobre el video -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1;"></div>
+
+    <!-- Texto centrado -->
+    <div class="hero-content text-white" style="z-index: 2;">
+        <h1>Bienvenido a Klugelab</h1>
+        <p>Descubre cómo podemos ayudar a hacer realidad tus ideas.</p>
+        <a href="{% url 'published_projects' %}" class="btn btn-primary">Ver más</a>
+    </div>
+</section>
 {% endblock %}

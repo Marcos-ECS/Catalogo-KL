@@ -1,40 +1,109 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-    <h1>{{ proyecto.titulo }}</h1>
-    
-    <!-- Verificar si el proyecto tiene una portada -->
-    {% if proyecto.Portada_de_proyecto %}
-        <img src="{{ proyecto.Portada_de_proyecto.url }}" alt="Portada de {{ proyecto.titulo }}" style="max-width: 300px;">
-    {% else %}
-        <p>No hay portada disponible</p>
-    {% endif %}
+<div class="row align-items-center mb-4">
+    <h1>Proyecto: {{ proyecto.titulo }}</h1>
 
-    <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
-    <p><strong>Fecha de agregado:</strong> {{ proyecto.FechaDeAgregado }}</p>
-    <p><strong>Fecha de realización:</strong> {{ proyecto.Fecha_De_Realizacion }}</p>
-    
-    <a href="{% url 'descargar_proyecto_pdf' project_id=proyecto.id %}" class="btn btn-primary">Descargar en PDF</a>
-    <!-- Si tienes una galería de imágenes -->
-    <h3>Galería de proyecto:</h3>
-    <ul>
-        {% for imagen in proyecto.imagenes.all %}
-            {% if imagen.imagen %}
-                <li><img src="{{ imagen.imagen.url }}" alt="Imagen del proyecto" style="max-width: 150px;"></li>
-            {% else %}
-            
-            <li><img src="{% static 'images/sample.png' %}" alt="Imagen de muestra" style="max-width: 150px;"></li>
-            {% endif %}
-        {% empty %}
-            <li>No hay fotos adicionales para este proyecto</li>
-        {% endfor %}
-    </ul>
-    
-    <p><strong>Empleado responsable:</strong> {{ proyecto.Empleado_Responsable }}</p>
+    <!-- Carrusel -->
+    <div class="col-md-8">
+        <div id="carouselGallery" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for imagen in proyecto.imagenes.all %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        {% if imagen.imagen %}
+                            <img src="{{ imagen.imagen.url }}" 
+                                 class="d-block w-100" 
+                                 alt="Imagen del proyecto" 
+                                 style="height: 400px; object-fit: cover; cursor: pointer;" 
+                                 data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{{ imagen.imagen.url }}">
+                        {% else %}
+                            <img src="{% static 'images/sample.png' %}" 
+                                 class="d-block w-100" 
+                                 alt="Imagen de muestra" 
+                                 style="height: 400px; object-fit: cover; cursor: pointer;" 
+                                 data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{% static 'images/sample.png' %}">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselGallery" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselGallery" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
 
-    {% if user.is_authenticated %}
-        <a href="{% url 'published_projects' %}">Volver a la lista de proyectos</a>
-    {% else %}
-        <a href="{% url 'published_projects' %}">Volver a la lista de proyectos</a>
-    {% endif %}
+    <!-- Información -->
+    <div class="col-md-4">
+        <img src="{{ proyecto.Portada_de_proyecto.url }}" alt="Logo del proyecto" style="width: 200px; margin-bottom: 20px;">
+        <div><strong>Descripción:</strong></div>
+        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9; word-wrap: break-word; word-break: break-all;">
+            <p> {{ proyecto.descripcion }}</p>
+        </div>
+        
+        <a href="{% url 'descargar_proyecto_pdf' project_id=proyecto.id %}" class="btn btn-primary mt-3">Descargar en PDF</a>
+    </div>
+</div>
+
+<!-- Galería -->
+<h3 class="mt-4">Galería de imágenes adicionales:</h3>
+<div class="row">
+    {% for imagen in proyecto.imagenes.all %}
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                {% if imagen.imagen %}
+                    <img src="{{ imagen.imagen.url }}" 
+                         class="card-img-top" 
+                         alt="Imagen del proyecto" 
+                         style="height: 200px; object-fit: cover; cursor: pointer;" 
+                         data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{{ imagen.imagen.url }}">
+                {% else %}
+                    <img src="{% static 'images/sample.png' %}" 
+                         class="card-img-top" 
+                         alt="Imagen de muestra" 
+                         style="height: 200px; object-fit: cover; cursor: pointer;" 
+                         data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{% static 'images/sample.png' %}">
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p>No hay imágenes adicionales para este proyecto.</p>
+    {% endfor %}
+</div>
+
+<!-- Botón Volver -->
+<a href="{% url 'published_projects' %}" class="btn btn-secondary mt-4">Volver a la lista de proyectos</a>
+
+<!-- Modal para el zoom -->
+<div class="modal fade" id="zoomModal" tabindex="-1" aria-labelledby="zoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="zoomModalLabel">Zoom de la imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" id="modalImage" class="img-fluid" alt="Imagen en zoom">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Script para cargar la imagen seleccionada en el modal
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('zoomModal');
+        const modalImage = document.getElementById('modalImage');
+
+        modal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const imgSrc = button.getAttribute('data-img-src');
+            modalImage.src = imgSrc;
+        });
+    });
+</script>
 {% endblock %}

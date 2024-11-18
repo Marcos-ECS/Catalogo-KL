@@ -2,8 +2,18 @@
 
 {% block content %}
     <h1>Crear proyecto</h1>
-
-    {{error}}
+    <div class="alert alert-info" role="alert">
+        Nota: Recuerda activar tu proyecto después de crearlo para que este publicado.
+      </div>
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.level_tag == "error" %}
+                <div class="alert alert-warning" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 
     <form action="{% url 'create_project' %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
