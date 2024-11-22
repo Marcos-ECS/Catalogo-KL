@@ -1,34 +1,68 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Crear proyecto</h1>
-    <div class="alert alert-info" role="alert">
-        Nota: Recuerda activar tu proyecto después de crearlo para que este publicado.
-      </div>
-    {% if messages %}
-        {% for message in messages %}
-            {% if message.level_tag == "error" %}
-                <div class="alert alert-warning" role="alert">
-                    {{ message }}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Nota informativa -->
+            <div class="alert alert-info text-center" role="alert">
+                Nota: Recuerda activar tu proyecto después de crearlo para que esté publicado.
+            </div>
+
+            <!-- Tarjeta de creación de proyecto -->
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white text-center">
+                    <h2>Crear Proyecto</h2>
                 </div>
-            {% endif %}
-        {% endfor %}
-    {% endif %}
+                <div class="card-body">
+                    <!-- Mostrar mensajes de error -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            {% if message.level_tag == "error" %}
+                                <div class="alert alert-warning" role="alert">
+                                    {{ message }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
 
-    <form action="{% url 'create_project' %}" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+                    <!-- Formulario -->
+                    <form action="{% url 'create_project' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
 
-        {{ form.as_p }}
-        <h2>Imágenes del proyecto(En caso de dejar en blanco, se subira imagenes de muestra, solo aplica en la creacion del proyecto)</h2>
-        {{ formset_imagenes.management_form }}  <!-- Necesario para formsets -->
-        {% for form in formset_imagenes %}
-            {{ form.as_p }}
-            
-        {% endfor %}
+                        <!-- Información del proyecto -->
+                        <div class="mb-4">
+                            {{ form.as_p }}
+                        </div>
 
-        <button>
-            Guardar
-        </button>
-    </form>
+                        <!-- Galería de imágenes -->
+                        <div class="mb-4">
+                            <h5>Imágenes del proyecto</h5>
+                            <p class="text-muted">
+                                En caso de dejar en blanco, se subirán imágenes de muestra (solo aplica en la creación del proyecto).
+                            </p>
+                            {{ formset_imagenes.management_form }} <!-- Necesario para formsets -->
+                            <div class="row">
+                                {% for form in formset_imagenes %}
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            {{ form.as_p }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
 
+                        <!-- Botones -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            <a href="{% url 'task' %}" class="btn btn-secondary ms-2">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<br><br>
 {% endblock %}

@@ -2,7 +2,48 @@
 {% load static %}
 
 {% block content %}
-<section class="hero-section d-flex align-items-center justify-content-center text-center position-relative" style="height: 80vh;">
+<style>
+#cta {
+    background-color: #343a40; /* Gris oscuro (coherente con el nav y footer) */
+    color: white;
+}
+
+#cta h2 {
+    font-weight: bold;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Sutil sombra para destacar */
+}
+
+#cta p.lead {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #d6d6d6; /* Texto secundario en gris claro */
+}
+
+#cta .btn-primary {
+    background-color: #007bff; /* Azul coherente con los botones existentes */
+    border: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+#cta .btn-primary:hover {
+    background-color: #0056b3; /* Azul más oscuro al pasar el cursor */
+    transform: scale(1.05); /* Efecto ligero de ampliación */
+}
+
+#cta .btn-outline-light {
+    color: white;
+    border-color: white;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+#cta .btn-outline-light:hover {
+    color: #343a40; /* Cambiar texto a gris oscuro */
+    background-color: white; /* Fondo blanco al pasar el cursor */
+}
+
+
+</style>
+<section class="hero-section d-flex align-items-center justify-content-center text-center position-relative" style="min-height: 75vh;">
     <!-- Video de fondo -->
     <video autoplay loop muted playsinline class="w-100 h-100" style="object-fit: cover; position: absolute; top: 0; left: 0; z-index: -1;">
         <source src="{% static 'video/video-bussines.mp4' %}" type="video/mp4">
@@ -14,9 +55,81 @@
 
     <!-- Texto centrado -->
     <div class="hero-content text-white" style="z-index: 2;">
-        <h1>Bienvenido a Klugelab</h1>
+        <h1>Bienvenido a Kluge Lab</h1>
         <p>Descubre cómo podemos ayudar a hacer realidad tus ideas.</p>
-        <a href="{% url 'published_projects' %}" class="btn btn-primary">Ver más</a>
+        <a href="#about" class="btn btn-primary">Ver más</a>
     </div>
 </section>
+<section id="about" class="container py-5">
+    <div class="row align-items-center">
+        <!-- Columna de texto -->
+        <div class="col-md-6">
+            <h2 class="mb-4">Sobre nosotros</h2>
+            <p>
+                En <strong>Kluge Lab</strong>, nos dedicamos a la innovación tecnológica, 
+                desarrollando soluciones personalizadas para cumplir con las necesidades de nuestros clientes. 
+                Nuestro equipo está comprometido en convertir tus ideas en proyectos exitosos.
+            </p>
+            <p>
+                Desde aplicaciones personalizadas hasta consultoría tecnológica, 
+                trabajamos contigo para transformar tus visiones en realidad.
+            </p>
+            <a href="{% url 'published_projects' %}" class="btn btn-primary mt-3">Explorar proyectos</a>
+        </div>
+
+        <!-- Columna de imagen -->
+        <div class="col-md-6 text-center">
+            <img src="{% static 'images/about-us.jpg' %}" alt="Sobre nosotros" class="img-fluid rounded shadow">
+        </div>
+    </div>
+</section>
+<br>
+<section id="services" class="bg-light py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>¿Qué hacemos?</h2>
+            <p class="text-muted">
+                Ofrecemos una amplia gama de servicios para ayudarte a alcanzar tus objetivos tecnológicos.
+            </p>
+        </div>
+        <div class="row text-center">
+            <!-- Servicio 1 -->
+            <div class="col-md-3">
+                <i class="bi bi-code-slash text-primary" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">Desarrollo de Software</h5>
+                <p>Aplicaciones personalizadas para resolver tus necesidades.</p>
+            </div>
+            <!-- Servicio 2 -->
+            <div class="col-md-3">
+                <i class="bi bi-pie-chart-fill text-success" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">Análisis de Datos</h5>
+                <p>Transformamos datos en estrategias para el crecimiento.</p>
+            </div>
+            <!-- Servicio 3 -->
+            <div class="col-md-3">
+                <i class="bi bi-laptop text-warning" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">Diseño Web</h5>
+                <p>Websites atractivos y funcionales para destacar tu negocio.</p>
+            </div>
+            <!-- Servicio 4 -->
+            <div class="col-md-3">
+                <i class="bi bi-shield-lock-fill text-danger" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">Seguridad</h5>
+                <p>Protegemos tu información con las mejores prácticas.</p>
+            </div>
+        </div>
+    </div>
+</section>
+<div><br></div>
+<section id="cta" class="bg-dark text-white py-5">
+    <div class="container text-center">
+        <h2 class="mb-3">¿Tienes un proyecto en mente?</h2>
+        <p class="lead mb-4">Estamos listos para ayudarte a convertir tus ideas en realidad. ¡Trabajemos juntos en la creación de algo innovador!</p>
+        <a href="#contact" class="btn btn-primary btn-lg me-3">Contáctanos</a>
+        <a href="#services" class="btn btn-outline-light btn-lg">Conoce más</a>
+    </div>
+</section>
+<div><br></div>
+
+
 {% endblock %}

@@ -14,8 +14,18 @@
     <a href="{% url 'task' %}" class="btn btn-secondary">Limpiar filtro</a>
 </form>
 
-<!-- Botón para descargar el CSV -->
-<a href="{% url 'descargar_csv' %}" class="btn btn-primary mt-3 mb-3">Descargar lista de proyectos (CSV)</a>
+<!-- Botón dropdown para descargar CSV -->
+<div class="dropdown mt-3 mb-3">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownCSV" data-bs-toggle="dropdown" aria-expanded="false">
+        Descargar lista de proyectos
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownCSV">
+        <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=all">Todos los proyectos</a></li>
+        <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=activos">Proyectos activos</a></li>
+        <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=inactivos">Proyectos inactivos</a></li>
+    </ul>
+</div>
+
 
 <!-- Resultados de proyectos -->
 <table class="table table-bordered table-striped">
@@ -60,5 +70,6 @@
         {% endfor %}
     </tbody>
 </table>
+<br>
 
 {% endblock %}

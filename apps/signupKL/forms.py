@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.forms import modelformset_factory
 from .models import Proyecto, ImagenesdeProyecto, UserProfile
 from django import forms
+from django.utils.translation import gettext_lazy as _ 
 
 
 
@@ -58,9 +59,18 @@ class RegistroFormulario(UserCreationForm):
         model = User
         fields = ['username', 'password1', 'password2']
         labels = {
-            'username': 'Nombre de usuario',
-            'password1': 'Contraseña',
-            'password2': 'Confirmar contraseña',
+            'username': _('Nombre de usuario'),
+            'password1': _('Contraseña'),
+            'password2': _('Confirmar contraseña'),
+        }
+        help_texts = {
+            'username': _('Requerido. 150 caracteres o menos. Letras, dígitos y @/./+/-/_ solamente.'),
+        }
+        error_messages = {
+            'username': {
+                'unique': _('Este nombre de usuario ya está en uso.'),
+            },
+            'password_mismatch': _('Las contraseñas no coinciden.'),
         }
     def __init__(self, *args, **kwargs):
         super(RegistroFormulario, self).__init__(*args, **kwargs)

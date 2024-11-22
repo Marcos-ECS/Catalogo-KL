@@ -13,10 +13,10 @@
                 <div class="card-body">
                     <!-- Detalles del perfil -->
                     <div class="text-center mb-4">
-                        {% if usuario.profile.profile_picture %}
-                            <img src="{{ usuario.profile.profile_picture.url }}" alt="Foto de perfil" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% if usuario.profile.photo %}
+                        <img src="{{ usuario.profile.photo.url }}" alt="Foto de perfil" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                         {% else %}
-                            <img src="{% static 'images/default-profile.jpg' %}" alt="Foto de perfil predeterminada" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                        <img src="{% static 'images/default-profile.jpg' %}" alt="Foto de perfil predeterminada" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                         {% endif %}
                     </div>
                     <ul class="list-group list-group-flush">

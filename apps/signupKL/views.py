@@ -14,10 +14,14 @@ import csv
 from .filters import ProyectoFilter
 from django.contrib.auth.forms import UserChangeForm
 from .forms import PerfilUsuarioForm
-
+from .decorators import check_profile_completion
+from reportlab.lib import colors
+from reportlab.lib.utils import ImageReader
+from textwrap import wrap
 
 # Create your views here.
 #Registro de usuaurios
+@check_profile_completion
 @login_required
 def signup(request):
     if request.method == 'POST':
@@ -33,13 +37,15 @@ def signup(request):
         form = RegistroFormulario()
     
     return render(request, 'signkl.html', {'form': form, 'container': True})
-    
+
+@check_profile_completion
 @login_required(login_url='loginkl')    
 def task(request):
     proyectos = Proyecto.objects.all().order_by('-FechaDeAgregado')
     task = ProyectoFilter(request.GET, queryset=proyectos)
     return render(request, 'task.html', {'task': task, 'container': True})
 
+@check_profile_completion
 @login_required(login_url='loginkl')  
 def crear_proyectos(request):
      if request.method == 'GET':
@@ -78,6 +84,7 @@ def crear_proyectos(request):
                     'container': True 
                 })
 
+@check_profile_completion
 @login_required(login_url='loginkl')          
 def Editar_proyectos(request, project_id):
     task = get_object_or_404(Proyecto, pk=project_id)
@@ -142,6 +149,7 @@ def Proyectos_publicado(request):
     task = Proyecto.objects.filter(Estatus_de_proyecto = 'Si').order_by('-FechaDeAgregado')
     return render(request, 'task_publicados.html', {'task': task, 'container': True })
 
+@check_profile_completion
 @login_required(login_url='loginkl')  
 def Editar_proyecto_NO_autor(request, project_id):
     # Obtener el proyecto y verificar que exista
@@ -174,6 +182,7 @@ def Editar_proyecto_NO_autor(request, project_id):
 #         task.delete()
 #         return redirect('task')
 
+
 def Detalles_proyecto(request, project_id):
     # Obtener el proyecto o lanzar un error 404 si no existe
     proyecto = get_object_or_404(Proyecto, pk=project_id)
@@ -185,7 +194,7 @@ def logoutkl(request):
      messages.info(request, 'Has cerrado la sesion')
      return redirect('home')
 
-#Exportador de PDF
+# Exportador de PDF con cabecera y pie de página
 @login_required(login_url='loginkl')  
 def descargar_proyecto_pdf(request, project_id):
     proyecto = get_object_or_404(Proyecto, pk=project_id)
@@ -198,71 +207,147 @@ def descargar_proyecto_pdf(request, project_id):
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
 
-    # Título del proyecto
+    def draw_header_footer():
+        # Cabecera
+        p.setFont("Helvetica-Bold", 14)
+        p.setFillColor(colors.darkblue)
+        p.drawString(50, height - 50, "Klugelab - Reporte de Proyecto")
+        p.line(50, height - 55, width - 50, height - 55)
+
+        # Pie de página
+        p.setFont("Helvetica", 10)
+        p.setFillColor(colors.gray)
+        p.drawString(50, 30, "Generado por Klugelab")
+        p.drawString(width - 100, 30, f"Pág. {p.getPageNumber()}")
+        p.line(50, 40, width - 50, 40)
+
+    def add_watermark():
+        # Marca de agua
+        p.saveState()
+        p.setFont("Helvetica-Bold", 60)
+        p.setFillColor(colors.lightgrey)
+        p.translate(width / 2, height / 2)
+        p.rotate(45)  # Rotar el texto
+        p.drawCentredString(0, 0, "KLUGE LAB")
+        p.restoreState()
+
+    # Dibujar cabecera, pie de página y marca de agua
+    add_watermark()
+    draw_header_footer()
+
+    # Contenido principal
+    y_position = height - 100
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(100, height - 100, f"Proyecto: {proyecto.titulo}")
+    p.setFillColor(colors.black)
 
-    # Descripción
+    # Título del proyecto
+    p.drawString(50, y_position, f"Proyecto: {proyecto.titulo}")
+    y_position -= 30
+
+    # Descripción con salto de línea automático
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y_position, "Descripción:")
+    y_position -= 20
     p.setFont("Helvetica", 12)
-    p.drawString(100, height - 140, f"Descripción: {proyecto.descripcion}")
+    description = proyecto.descripcion
+    wrapped_text = wrap(description, 80)  # Ajusta el ancho de línea
+    for line in wrapped_text:
+        if y_position < 100:
+            p.showPage()
+            add_watermark()
+            draw_header_footer()
+            y_position = height - 100
+        p.drawString(50, y_position, line)
+        y_position -= 15
 
-    # Fecha de agregado y realización
-    p.drawString(100, height - 160, f"Fecha de agregado: {proyecto.FechaDeAgregado}")
-    if proyecto.Fecha_De_Realizacion:
-        p.drawString(100, height - 180, f"Fecha de realización: {proyecto.Fecha_De_Realizacion}")
-
-    # Empleado Responsable
-    p.drawString(100, height - 200, f"Empleado responsable: {proyecto.Empleado_Responsable}")
+    # Espaciado extra antes de las imágenes
+    y_position -= 30
+    if y_position < 200:
+        p.showPage()
+        add_watermark()
+        draw_header_footer()
+        y_position = height - 100
 
     # Imágenes de la galería
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(100, height - 240, "Imágenes de la galería:")
+    p.drawString(50, y_position, "Imágenes de la galería:")
+    y_position -= 30
+
     imagenes = ImagenesdeProyecto.objects.filter(proyecto=proyecto)
-    y_position = height - 260
-    for imagen in imagenes:
-        if imagen.imagen:  # Verifica si hay un archivo de imagen asociado
-            p.drawString(120, y_position, f"- {imagen.imagen.url}")  # Solo URL por simplicidad
+    col_position = 50
+    for idx, imagen in enumerate(imagenes):
+        if y_position < 150:  # Salto de página si la imagen no cabe
+            p.showPage()
+            add_watermark()
+            draw_header_footer()
+            y_position = height - 100
+            col_position = 50
+
+        if imagen.imagen:
+            img_path = ImageReader(imagen.imagen.path)
+            p.drawImage(img_path, col_position, y_position - 100, width=200, height=100, preserveAspectRatio=True, mask='auto')
         else:
-            p.drawString(120, y_position, "- Imagen de muestra")
-        y_position -= 20
+            p.setFont("Helvetica", 12)
+            p.drawString(col_position, y_position, "Imagen de muestra no disponible")
+        
+        col_position += 220  # Espacio entre columnas
+        if (idx + 1) % 2 == 0:  # Nueva fila cada dos imágenes
+            col_position = 50
+            y_position -= 120
 
     # Finalizar el PDF
     p.showPage()
     p.save()
     return response
 
+
+
 #Exportador de CSV
 @login_required(login_url='loginkl')  
 def descargar_csv(request):
+    # Obtener el filtro de la consulta
+    filtro = request.GET.get('filtro', 'all')
+
     # Crear la respuesta de CSV
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="proyectos.csv"'
+    response['Content-Disposition'] = f'attachment; filename="proyectos_{filtro}.csv"'
 
     # Definir los encabezados del CSV
     writer = csv.writer(response)
     writer.writerow(['ID', 'Título', 'Descripción', 'Fecha de subida', 'Estatus', 'Autor'])
 
-    # Obtener los proyectos y escribir cada uno en el CSV
-    proyectos = Proyecto.objects.all()
+    # Filtrar los proyectos según el parámetro
+    if filtro == 'activos':
+        proyectos = Proyecto.objects.filter(Estatus_de_proyecto='Si')
+    elif filtro == 'inactivos':
+        proyectos = Proyecto.objects.filter(Estatus_de_proyecto='No')
+    else:  # Por defecto, todos los proyectos
+        proyectos = Proyecto.objects.all()
+
+    # Escribir los proyectos en el CSV
     for proyecto in proyectos:
         writer.writerow([
             proyecto.id,
             proyecto.titulo,
             proyecto.descripcion,
-            proyecto.FechaDeAgregado,
-            #proyecto.Fecha_De_Realizacion,
+            proyecto.FechaDeAgregado.strftime('%d/%m/%Y'), 
             proyecto.get_Estatus_de_proyecto_display(),
             proyecto.Empleado_Responsable.username
         ])
 
     return response
 
+
 #Perfil de usuario registrado
+
+@check_profile_completion
 @login_required(login_url='loginkl')  
 def perfil(request):
     return render(request, 'profile.html', {'usuario': request.user, 'container': True})
 
 #Editar perfil
+
+@check_profile_completion
 @login_required(login_url='loginkl')  
 def editar_perfil(request):
     user_profile = request.user.profile  # Relación OneToOne entre User y UserProfile
@@ -285,3 +370,6 @@ def editar_perfil(request):
         'profile_form': profile_form,
         'container': True
     })
+
+
+

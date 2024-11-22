@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="row align-items-center mb-4">
-    <h1>Proyecto: {{ proyecto.titulo }}</h1>
+<div class="container mt-5">
+    <!-- Título del proyecto -->
+    <h1 class="text-center mb-4"> Proyecto: {{ proyecto.titulo }}</h1>
 
     <!-- Carrusel -->
-    <div class="col-md-8">
+    <div class="mb-4">
         <div id="carouselGallery" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
                 {% for imagen in proyecto.imagenes.all %}
@@ -14,7 +15,7 @@
                             <img src="{{ imagen.imagen.url }}" 
                                  class="d-block w-100" 
                                  alt="Imagen del proyecto" 
-                                 style="height: 400px; object-fit: cover; cursor: pointer;" 
+                                 style="height: 550px; object-fit: cover; cursor: pointer;" 
                                  data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{{ imagen.imagen.url }}">
                         {% else %}
                             <img src="{% static 'images/sample.png' %}" 
@@ -37,53 +38,66 @@
         </div>
     </div>
 
-    <!-- Información -->
-    <div class="col-md-4">
-        <img src="{{ proyecto.Portada_de_proyecto.url }}" alt="Logo del proyecto" style="width: 200px; margin-bottom: 20px;">
-        <div><strong>Descripción:</strong></div>
-        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9; word-wrap: break-word; word-break: break-all;">
-            <p> {{ proyecto.descripcion }}</p>
-        </div>
-        
-        <a href="{% url 'descargar_proyecto_pdf' project_id=proyecto.id %}" class="btn btn-primary mt-3">Descargar en PDF</a>
-    </div>
-</div>
-
-<!-- Galería -->
-<h3 class="mt-4">Galería de imágenes adicionales:</h3>
-<div class="row">
-    {% for imagen in proyecto.imagenes.all %}
-        <div class="col-md-3 mb-4">
-            <div class="card">
-                {% if imagen.imagen %}
-                    <img src="{{ imagen.imagen.url }}" 
-                         class="card-img-top" 
-                         alt="Imagen del proyecto" 
-                         style="height: 200px; object-fit: cover; cursor: pointer;" 
-                         data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{{ imagen.imagen.url }}">
-                {% else %}
-                    <img src="{% static 'images/sample.png' %}" 
-                         class="card-img-top" 
-                         alt="Imagen de muestra" 
-                         style="height: 200px; object-fit: cover; cursor: pointer;" 
-                         data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{% static 'images/sample.png' %}">
-                {% endif %}
+     <!-- Contenedor de descripción y portada -->
+     <div class="row bg-light p-4 rounded shadow-sm mb-4">
+        <!-- Descripción -->
+        <div class="col-md-8">
+            <h3>Descripción</h3>
+            <div style="max-height: 200px; overflow-y: auto; word-wrap: break-word; word-break: break-word;">
+                <p>{{ proyecto.descripcion }}</p>
             </div>
+            <p><strong>Fecha de agregado:</strong> {{ proyecto.FechaDeAgregado }}</p>
+            <p><strong>Fecha de realización:</strong> {{ proyecto.Fecha_De_Realizacion }}</p>
+            <a href="{% url 'descargar_proyecto_pdf' project_id=proyecto.id %}" class="btn btn-primary mt-3">Descargar en PDF</a>
         </div>
-    {% empty %}
-        <p>No hay imágenes adicionales para este proyecto.</p>
-    {% endfor %}
-</div>
+    
+        <!-- Portada -->
+        <div class="col-md-4 text-center order-md-last"> <!-- Clase order-md-last para mover a la derecha en pantallas medianas -->
+            {% if proyecto.Portada_de_proyecto %}
+                <img src="{{ proyecto.Portada_de_proyecto.url }}" alt="Logo del proyecto" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">
+            {% else %}
+                <p>No hay portada disponible.</p>
+            {% endif %}
+        </div>
+    </div>
+    
 
-<!-- Botón Volver -->
-<a href="{% url 'published_projects' %}" class="btn btn-secondary mt-4">Volver a la lista de proyectos</a>
+
+    <!-- Galería adicional -->
+    <h3 class="mt-4">Galería de imágenes adicionales:</h3>
+    <div class="row">
+        {% for imagen in proyecto.imagenes.all %}
+            <div class="col-md-3 mb-4">
+                <div class="card">
+                    {% if imagen.imagen %}
+                        <img src="{{ imagen.imagen.url }}" 
+                             class="card-img-top" 
+                             alt="Imagen del proyecto" 
+                             style="height: 200px; object-fit: cover; cursor: pointer;" 
+                             data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{{ imagen.imagen.url }}">
+                    {% else %}
+                        <img src="{% static 'images/sample.png' %}" 
+                             class="card-img-top" 
+                             alt="Imagen de muestra" 
+                             style="height: 200px; object-fit: cover; cursor: pointer;" 
+                             data-bs-toggle="modal" data-bs-target="#zoomModal" data-img-src="{% static 'images/sample.png' %}">
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p>No hay imágenes adicionales para este proyecto.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Botón Volver -->
+    <a href="{% url 'published_projects' %}" class="btn btn-secondary mt-4">Volver a la lista de proyectos</a>
+</div>
 
 <!-- Modal para el zoom -->
 <div class="modal fade" id="zoomModal" tabindex="-1" aria-labelledby="zoomModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="zoomModalLabel">Zoom de la imagen</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
@@ -91,6 +105,10 @@
             </div>
         </div>
     </div>
+</div>
+
+<div>
+    <br><br>
 </div>
 
 <script>
