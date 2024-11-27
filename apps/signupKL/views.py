@@ -18,6 +18,8 @@ from .decorators import check_profile_completion
 from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from textwrap import wrap
+from django.utils.timezone import localtime
+
 
 # Create your views here.
 #Registro de usuaurios
@@ -73,14 +75,17 @@ def crear_proyectos(request):
 
                 return redirect ('task')
             else:
-                # Enviar mensaje de error si la descripción es demasiado corta o hay otros errores
-                if form_proyecto.errors.get('descripcion'):
-                    messages.error(request, "La descripción debe tener al menos 50 caracteres.")
-                    
+                # Capturar errores específicos
+                errores = {}
+                if 'descripcion' in form_proyecto.errors:
+                    errores['descripcion'] = form_proyecto.errors['descripcion']
+                if not formset_imagenes.is_valid():
+                    errores['galeria'] = "Hay errores en las imágenes de la galería. Por favor revisa los campos."
+
                 return render(request, 'create_project.html', {
                     'form': form_proyecto,
                     'formset_imagenes': formset_imagenes,
-                    'error': 'Por favor proporcione datos válidos', 
+                    'errores': errores,  # Pasar errores específicos al template
                     'container': True 
                 })
 
@@ -195,7 +200,6 @@ def logoutkl(request):
      return redirect('home')
 
 # Exportador de PDF con cabecera y pie de página
-@login_required(login_url='loginkl')  
 def descargar_proyecto_pdf(request, project_id):
     proyecto = get_object_or_404(Proyecto, pk=project_id)
 
@@ -244,21 +248,26 @@ def descargar_proyecto_pdf(request, project_id):
     p.drawString(50, y_position, f"Proyecto: {proyecto.titulo}")
     y_position -= 30
 
-    # Descripción con salto de línea automático
+    # Descripción con saltos de línea respetados
     p.setFont("Helvetica-Bold", 12)
     p.drawString(50, y_position, "Descripción:")
     y_position -= 20
     p.setFont("Helvetica", 12)
+
     description = proyecto.descripcion
-    wrapped_text = wrap(description, 80)  # Ajusta el ancho de línea
-    for line in wrapped_text:
-        if y_position < 100:
-            p.showPage()
-            add_watermark()
-            draw_header_footer()
-            y_position = height - 100
-        p.drawString(50, y_position, line)
-        y_position -= 15
+    lines = description.split('\n')  # Dividir la descripción en líneas según los saltos de línea originales
+    for paragraph in lines:
+        wrapped_text = wrap(paragraph, 80)  # Ajustar el ancho de cada párrafo
+        for line in wrapped_text:
+            if y_position < 100:
+                p.showPage()
+                add_watermark()
+                draw_header_footer()
+                y_position = height - 100
+            p.drawString(50, y_position, line)
+            y_position -= 15
+        y_position -= 10  # Añadir espacio entre párrafos
+
 
     # Espaciado extra antes de las imágenes
     y_position -= 30
@@ -302,7 +311,6 @@ def descargar_proyecto_pdf(request, project_id):
 
 
 
-#Exportador de CSV
 @login_required(login_url='loginkl')  
 def descargar_csv(request):
     # Obtener el filtro de la consulta
@@ -316,26 +324,38 @@ def descargar_csv(request):
     writer = csv.writer(response)
     writer.writerow(['ID', 'Título', 'Descripción', 'Fecha de subida', 'Estatus', 'Autor'])
 
-    # Filtrar los proyectos según el parámetro
+    # Filtrar los proyectos según el parámetro y ordenar por fecha descendente
     if filtro == 'activos':
-        proyectos = Proyecto.objects.filter(Estatus_de_proyecto='Si')
+        proyectos = Proyecto.objects.filter(Estatus_de_proyecto='Si').order_by('-FechaDeAgregado')
     elif filtro == 'inactivos':
-        proyectos = Proyecto.objects.filter(Estatus_de_proyecto='No')
+        proyectos = Proyecto.objects.filter(Estatus_de_proyecto='No').order_by('-FechaDeAgregado')
     else:  # Por defecto, todos los proyectos
-        proyectos = Proyecto.objects.all()
+        proyectos = Proyecto.objects.all().order_by('-FechaDeAgregado')
 
     # Escribir los proyectos en el CSV
     for proyecto in proyectos:
+        empleado = proyecto.Empleado_Responsable
+        # Generar el nombre del autor
+        autor = (
+            f"{empleado.first_name} {empleado.last_name}".strip()
+            if empleado.first_name or empleado.last_name
+            else empleado.username
+        )
+        # Convertir la fecha a la zona horaria configurada
+        fecha_local = localtime(proyecto.FechaDeAgregado).strftime('%d/%m/%Y')
+
         writer.writerow([
             proyecto.id,
             proyecto.titulo,
             proyecto.descripcion,
-            proyecto.FechaDeAgregado.strftime('%d/%m/%Y'), 
+            fecha_local,
             proyecto.get_Estatus_de_proyecto_display(),
-            proyecto.Empleado_Responsable.username
+            autor
         ])
 
     return response
+
+
 
 
 #Perfil de usuario registrado

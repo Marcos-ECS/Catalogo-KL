@@ -28,16 +28,36 @@
     <form method="POST" enctype="multipart/form-data" class="bg-light p-4 rounded shadow-sm">
         {% csrf_token %}
         {% if es_creador %}
-            <div class="mb-4">
-                {{ form.as_p }}
+            <div class="mb-3">
+                {{ form.titulo.label_tag }}
+                {{ form.titulo }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.Portada_de_proyecto.label_tag }}
+                {{ form.Portada_de_proyecto }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.descripcion.label_tag }}
+                {{ form.descripcion }} <br>
+                <!-- Contador de caracteres -->
+                <small id="description-counter" class="form-text text-muted mt-1">
+                    Caracteres: 0 / 1000
+                </small>
+            </div>
+
+            <div class="mb-3">
+                {{ form.Estatus_de_proyecto.label_tag }}
+                {{ form.Estatus_de_proyecto }}
             </div>
         {% else %}
             <div class="mb-4">
-                <p><strong>Descripción:</strong> {{ descripcion|truncatechars:50 }}</p>
+                <p><strong>Descripción:</strong> {{ descripcion|linebreaksbr }}</p>
                 <p><strong>Fecha de agregado:</strong> {{ fecha_de_agregado }}</p>
                 {% if task.Portada_de_proyecto %}
                     <h2>Portada del proyecto:</h2>
-                    <img src="{{ task.Portada_de_proyecto.url }}" alt="Portada de {{ task.titulo }}" class="img-fluid mb-3">
+                    <img src="{{ task.Portada_de_proyecto.url }}" alt="Portada de {{ task.titulo }}" class="img-fluid mb-3" style="max-width: 400px; max-height: 300px; object-fit: cover;">
                 {% else %}
                     <p>No hay portada disponible.</p>
                 {% endif %}
@@ -86,4 +106,32 @@
     <a href="{% url 'task' %}" class="btn btn-secondary mt-4">Volver a la lista de proyectos</a>
 </div>
 <br>
+
+<!-- Script para el contador de caracteres -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const descriptionInput = document.querySelector('#id_descripcion'); 
+        const counter = document.querySelector('#description-counter');
+
+        if (descriptionInput) {
+            // Función para actualizar el contador
+            const updateCounter = () => {
+                const length = descriptionInput.value.length;
+                counter.textContent = `Caracteres: ${length} / 1000`;
+                if (length > 1000) {
+                    counter.classList.add('text-danger'); // Marca en rojo si excede el límite
+                } else {
+                    counter.classList.remove('text-danger');
+                }
+            };
+
+            // Inicializar contador con el texto actual
+            updateCounter();
+
+            // Actualizar contador al escribir
+            descriptionInput.addEventListener('input', updateCounter);
+        }
+    });
+</script>
+
 {% endblock %}

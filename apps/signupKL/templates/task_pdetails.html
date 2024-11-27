@@ -44,10 +44,9 @@
         <div class="col-md-8">
             <h3>Descripción</h3>
             <div style="max-height: 200px; overflow-y: auto; word-wrap: break-word; word-break: break-word;">
-                <p>{{ proyecto.descripcion }}</p>
+                <p>{{ proyecto.descripcion|linebreaksbr }}</p>
             </div>
             <p><strong>Fecha de agregado:</strong> {{ proyecto.FechaDeAgregado }}</p>
-            <p><strong>Fecha de realización:</strong> {{ proyecto.Fecha_De_Realizacion }}</p>
             <a href="{% url 'descargar_proyecto_pdf' project_id=proyecto.id %}" class="btn btn-primary mt-3">Descargar en PDF</a>
         </div>
     
@@ -95,17 +94,18 @@
 
 <!-- Modal para el zoom -->
 <div class="modal fade" id="zoomModal" tabindex="-1" aria-labelledby="zoomModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-xl modal-dialog-centered"> <!-- Cambiado a modal-xl para mayor ancho -->
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header border-0">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center">
-                <img src="" id="modalImage" class="img-fluid" alt="Imagen en zoom">
+            <div class="modal-body d-flex justify-content-center align-items-center">
+                <img src="" id="modalImage" class="img-fluid rounded shadow-lg" alt="Imagen en zoom" style="max-height: 90vh; object-fit: contain;">
             </div>
         </div>
     </div>
 </div>
+
 
 <div>
     <br><br>

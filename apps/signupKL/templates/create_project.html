@@ -6,7 +6,7 @@
         <div class="col-md-8">
             <!-- Nota informativa -->
             <div class="alert alert-info text-center" role="alert">
-                Nota: Recuerda activar tu proyecto después de crearlo para que esté publicado.
+                Nota: Recuerda activar tu proyecto en EDITAR después de crearlo para que sea visible al público.
             </div>
 
             <!-- Tarjeta de creación de proyecto -->
@@ -16,30 +16,56 @@
                 </div>
                 <div class="card-body">
                     <!-- Mostrar mensajes de error -->
-                    {% if messages %}
-                        {% for message in messages %}
-                            {% if message.level_tag == "error" %}
-                                <div class="alert alert-warning" role="alert">
-                                    {{ message }}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
+                    {% if errores %}
+                        {% if errores.descripcion %}
+                            <div class="alert alert-warning" role="alert">
+                                {{ errores.descripcion }}
+                            </div>
+                        {% endif %}
+                        {% if errores.galeria %}
+                            <div class="alert alert-warning" role="alert">
+                                {{ errores.galeria }}
+                            </div>
+                        {% endif %}
                     {% endif %}
 
                     <!-- Formulario -->
                     <form action="{% url 'create_project' %}" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
 
-                        <!-- Información del proyecto -->
+                        <!-- Título del proyecto -->
                         <div class="mb-4">
-                            {{ form.as_p }}
+                            {{ form.titulo.label_tag }}
+                            {{ form.titulo }}
+                        </div>
+
+                        <!-- Portada -->
+                        <div class="mb-4">
+                            {{ form.Portada_de_proyecto.label_tag }}
+                            {{ form.Portada_de_proyecto }}
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-4">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                            <!-- Contador de caracteres para la descripción -->
+                            <div id="description-counter" class="text-muted mt-2">
+                                Caracteres: 0 / 1000
+                            </div>
+                        </div>
+
+                        <!-- Estatus del proyecto -->
+                        <div class="mb-4">
+                            {{ form.Estatus_de_proyecto.label_tag }}
+                            {{ form.Estatus_de_proyecto }}
                         </div>
 
                         <!-- Galería de imágenes -->
                         <div class="mb-4">
                             <h5>Imágenes del proyecto</h5>
                             <p class="text-muted">
-                                En caso de dejar en blanco, se subirán imágenes de muestra (solo aplica en la creación del proyecto).
+                                Sube 3 imágenes, en caso de no hacerlo se subirán imágenes de muestra (pueden ser eliminadas al editar el proyecto).
                             </p>
                             {{ formset_imagenes.management_form }} <!-- Necesario para formsets -->
                             <div class="row">
@@ -65,4 +91,32 @@
     </div>
 </div>
 <br><br>
+
+<!-- Script para el contador de caracteres -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const descriptionInput = document.querySelector('#id_descripcion'); 
+        const counter = document.querySelector('#description-counter');
+
+        if (descriptionInput) {
+            // Función para actualizar el contador
+            const updateCounter = () => {
+                const length = descriptionInput.value.length;
+                counter.textContent = `Caracteres: ${length} / 1000`;
+                if (length > 1000) {
+                    counter.classList.add('text-danger'); // Marca en rojo si excede el límite
+                } else {
+                    counter.classList.remove('text-danger');
+                }
+            };
+
+            // Actualizar contador al escribir
+            descriptionInput.addEventListener('input', updateCounter);
+
+            // Inicializar contador con el texto actual
+            updateCounter();
+        }
+    });
+</script>
+
 {% endblock %}

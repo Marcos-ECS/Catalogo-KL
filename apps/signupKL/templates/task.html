@@ -1,31 +1,46 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Menú de proyectos (Editar, habilitar o deshabilitar proyecto)</h1>
+<h1 class="mb-4">Menú de proyectos (Editar, habilitar o deshabilitar proyecto)</h1>
 
-<!-- Formulario de búsqueda -->
-<form method="get" style="margin-top: 20px;">
-    {{ task.form.titulo.label_tag }}
-    {{ task.form.titulo }}
-    
-    {{ task.form.estatus.label_tag }}
-    {{ task.form.estatus }}
-    
-    <button type="submit" class="btn btn-primary">Buscar</button>
-    <a href="{% url 'task' %}" class="btn btn-secondary">Limpiar filtro</a>
-</form>
+<!-- Contenedor estilizado para el buscador, creación y descarga -->
+<div class="card shadow-sm mb-4" style="background-color: #f8f9fa;">
+    <div class="card-body">
+        <!-- Formulario de búsqueda -->
+        <form method="get" class="d-flex align-items-center mb-3">
+            <div class="me-3">
+                <label for="titulo" class="form-label">{{ task.form.titulo.label }}</label>
+                {{ task.form.titulo }}
+            </div>
+            <div class="me-3">
+                <label for="estatus" class="form-label">{{ task.form.estatus.label }}</label>
+                {{ task.form.estatus }}
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary me-2">Buscar</button>
+                <a href="{% url 'task' %}" class="btn btn-secondary">Limpiar filtro</a>
+            </div>
+        </form>
 
-<!-- Botón dropdown para descargar CSV -->
-<div class="dropdown mt-3 mb-3">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownCSV" data-bs-toggle="dropdown" aria-expanded="false">
-        Descargar lista de proyectos
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownCSV">
-        <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=all">Todos los proyectos</a></li>
-        <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=activos">Proyectos activos</a></li>
-        <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=inactivos">Proyectos inactivos</a></li>
-    </ul>
+        <!-- Botón para crear nuevo proyecto -->
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="/signupKL/task/create" class="btn btn-success">
+                Crear Nuevo Proyecto
+            </a>
+
+            <!-- Botón dropdown para descargar CSV -->
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownCSV" data-bs-toggle="dropdown" aria-expanded="false">
+                    Descargar lista de proyectos
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownCSV">
+                    <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=all">Todos los proyectos</a></li>
+                    <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=activos">Proyectos activos</a></li>
+                    <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=inactivos">Proyectos inactivos</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
-
 
 <!-- Resultados de proyectos -->
 <table class="table table-bordered table-striped">
@@ -43,7 +58,7 @@
     <tbody>
         {% for Proyecto in task.qs %}
             <tr>
-                <td><a href="{% url 'project_edit' Proyecto.id %}">{{ Proyecto.titulo }}</a></td>
+                <td>{{ Proyecto.titulo }}</td>
                 <td>
                     {% if Proyecto.Portada_de_proyecto %}
                         <img src="{{ Proyecto.Portada_de_proyecto.url }}" alt="Portada de {{ Proyecto.titulo }}" style="max-width: 100px;">
@@ -59,7 +74,13 @@
                     {% endif %}
                 </td>
                 <td>{{ Proyecto.descripcion|truncatechars:50 }}</td>
-                <td>{{ Proyecto.Empleado_Responsable.first_name }} {{ Proyecto.Empleado_Responsable.last_name }}</td>
+                <td>
+                    {% if Proyecto.Empleado_Responsable.first_name or Proyecto.Empleado_Responsable.last_name %}
+                        {{ Proyecto.Empleado_Responsable.first_name }} {{ Proyecto.Empleado_Responsable.last_name }}
+                    {% else %}
+                        {{ Proyecto.Empleado_Responsable.username }}
+                    {% endif %}
+                </td>
                 <td>{{ Proyecto.FechaDeAgregado|date:"d M Y" }}</td>
                 <td><a href="{% url 'project_edit' Proyecto.id %}" class="btn btn-sm btn-primary">Editar</a></td>
             </tr>
@@ -68,8 +89,7 @@
                 <td colspan="7" class="text-center">No se encontraron proyectos que coincidan con la búsqueda.</td>
             </tr>
         {% endfor %}
-    </tbody>
+    </tbody>    
 </table>
 <br>
-
 {% endblock %}
