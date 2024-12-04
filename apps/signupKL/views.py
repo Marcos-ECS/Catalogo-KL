@@ -19,6 +19,8 @@ from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from textwrap import wrap
 from django.utils.timezone import localtime
+from apps.signupKL.models import EstatusDeProyecto
+
 
 
 # Create your views here.
@@ -45,7 +47,13 @@ def signup(request):
 def task(request):
     proyectos = Proyecto.objects.all().order_by('-FechaDeAgregado')
     task = ProyectoFilter(request.GET, queryset=proyectos)
-    return render(request, 'task.html', {'task': task, 'container': True})
+    estatus_disponibles = EstatusDeProyecto.objects.all()  # Obtener todos los estatus disponibles
+    return render(request, 'task.html', {
+        'task': task,
+        'estatus_disponibles': estatus_disponibles,
+        'container': True
+    })
+
 
 @check_profile_completion
 @login_required(login_url='loginkl')  
@@ -64,8 +72,11 @@ def crear_proyectos(request):
             #Guardar nuevo proyecto
             if form_proyecto.is_valid() and formset_imagenes.is_valid():
                 new_project = form_proyecto.save(commit=False)
+                estatus_default = EstatusDeProyecto.objects.get(nombre='Propuesto')  # Estatus inicial
+                new_project.estatus = estatus_default
                 new_project.Empleado_Responsable = request.user
                 new_project.save()
+
 
                 # Guardar las imágenes del formset asociadas al nuevo proyecto
                 for form in formset_imagenes:
@@ -100,17 +111,39 @@ def Editar_proyectos(request, project_id):
     if request.method == 'GET':
         form = ProyectoFormulario(instance=task)
         formset_imagenes = ImagenesdeProyectoFormSetEditar(queryset=ImagenesdeProyecto.objects.filter(proyecto=task))  # Cargar imágenes actuales
-        return render(request, 'project_edit.html', {'task': task, 'form': form, 'formset_imagenes': formset_imagenes, 'es_creador': True, 'container': True })
+        estatus_actual = task.estatus.id if task.estatus else None
+        estatus_disponibles = EstatusDeProyecto.objects.all()
+        return render(request, 'project_edit.html', {
+            'task': task,
+            'form': form,
+            'formset_imagenes': formset_imagenes,
+            'estatus_actual': estatus_actual,
+            'estatus_disponibles': estatus_disponibles,
+            'es_creador': True,
+            'container': True
+        })
     
     else:
         try:
             # Procesar el formulario del proyecto
             form = ProyectoFormulario(request.POST, request.FILES, instance=task)
-            formset_imagenes = ImagenesdeProyectoFormSetEditar(request.POST, request.FILES, queryset=ImagenesdeProyecto.objects.filter(proyecto=task))
+            formset_imagenes = ImagenesdeProyectoFormSetEditar(
+                request.POST, 
+                request.FILES, 
+                queryset=ImagenesdeProyecto.objects.filter(proyecto=task)
+            )
             
             if form.is_valid() and formset_imagenes.is_valid():
-                # Guardar cambios en el proyecto (incluyendo el estatus)
-                form.save()
+                # Guardar cambios en el proyecto
+                proyecto = form.save(commit=False)
+
+                # Actualizar el estatus seleccionado
+                nuevo_estatus_id = request.POST.get('estatus')  # Obtener el ID del estatus seleccionado
+                if nuevo_estatus_id:
+                    nuevo_estatus = EstatusDeProyecto.objects.get(id=nuevo_estatus_id)
+                    proyecto.estatus = nuevo_estatus
+
+                proyecto.save()
 
                 # Procesar las imágenes en el formset
                 for form in formset_imagenes:
@@ -125,34 +158,37 @@ def Editar_proyectos(request, project_id):
                         imagen_proyecto.proyecto = task  # Asignar el proyecto a la imagen
                         imagen_proyecto.save()
 
-                # Guardar los cambios en el formset (posible duplicidad de datos? invenstigar y testear)
-                #formset_imagenes.save()
-
                 return redirect('task')
 
             else:
                 # Mostrar los errores del formulario y del formset
+                estatus_disponibles = EstatusDeProyecto.objects.all()
                 return render(request, 'project_edit.html', {
                     'task': task,
                     'form': form,
                     'formset_imagenes': formset_imagenes,
+                    'estatus_actual': task.estatus.id if task.estatus else None,
+                    'estatus_disponibles': estatus_disponibles,
                     'error': "Error al actualizar el proyecto",
                     'form_errors': form.errors,
                     'formset_errors': formset_imagenes.errors,
                 })
 
         except ValueError:
+            estatus_disponibles = EstatusDeProyecto.objects.all()
             return render(request, 'project_edit.html', {
                 'task': task,
                 'form': form,
                 'formset_imagenes': formset_imagenes,
+                'estatus_actual': task.estatus.id if task.estatus else None,
+                'estatus_disponibles': estatus_disponibles,
                 'error': "Error al actualizar proyecto"
             })
 
 
 def Proyectos_publicado(request):
-    task = Proyecto.objects.filter(Estatus_de_proyecto = 'Si').order_by('-FechaDeAgregado')
-    return render(request, 'task_publicados.html', {'task': task, 'container': True })
+    task = Proyecto.objects.filter(estatus__nombre='Activo').order_by('-FechaDeAgregado')
+    return render(request, 'task_publicados.html', {'task': task, 'container': True})
 
 @check_profile_completion
 @login_required(login_url='loginkl')  
@@ -324,13 +360,16 @@ def descargar_csv(request):
     writer = csv.writer(response)
     writer.writerow(['ID', 'Título', 'Descripción', 'Fecha de subida', 'Estatus', 'Autor'])
 
-    # Filtrar los proyectos según el parámetro y ordenar por fecha descendente
-    if filtro == 'activos':
-        proyectos = Proyecto.objects.filter(Estatus_de_proyecto='Si').order_by('-FechaDeAgregado')
-    elif filtro == 'inactivos':
-        proyectos = Proyecto.objects.filter(Estatus_de_proyecto='No').order_by('-FechaDeAgregado')
-    else:  # Por defecto, todos los proyectos
+    # Manejar los filtros
+    if filtro == 'all':
         proyectos = Proyecto.objects.all().order_by('-FechaDeAgregado')
+    else:
+        try:
+            # Convertir el filtro a un entero y buscar el estatus correspondiente
+            estatus = EstatusDeProyecto.objects.get(id=int(filtro))
+            proyectos = Proyecto.objects.filter(estatus=estatus).order_by('-FechaDeAgregado')
+        except (EstatusDeProyecto.DoesNotExist, ValueError):
+            proyectos = Proyecto.objects.none()  # Sin resultados si el filtro es inválido
 
     # Escribir los proyectos en el CSV
     for proyecto in proyectos:
@@ -341,7 +380,7 @@ def descargar_csv(request):
             if empleado.first_name or empleado.last_name
             else empleado.username
         )
-        # Convertir la fecha a la zona horaria configurada
+        # Formatear la fecha
         fecha_local = localtime(proyecto.FechaDeAgregado).strftime('%d/%m/%Y')
 
         writer.writerow([
@@ -349,13 +388,11 @@ def descargar_csv(request):
             proyecto.titulo,
             proyecto.descripcion,
             fecha_local,
-            proyecto.get_Estatus_de_proyecto_display(),
+            proyecto.estatus.nombre,
             autor
         ])
 
     return response
-
-
 
 
 #Perfil de usuario registrado

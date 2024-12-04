@@ -11,13 +11,13 @@ from django.utils.translation import gettext_lazy as _
 class ProyectoFormulario(ModelForm):
     class Meta:
         model = Proyecto
-        fields = ['titulo', 'Portada_de_proyecto','descripcion', 'Estatus_de_proyecto']
+        fields = ['titulo', 'Portada_de_proyecto','descripcion', 'estatus']
 
     def __init__(self, *args, **kwargs):
         super(ProyectoFormulario, self).__init__(*args, **kwargs)
         # Excluir 'Estatus_de_proyecto' si el formulario es para crear un proyecto
         if kwargs.get('instance') is None:  # Es un proyecto nuevo (no existe instancia)
-            self.fields.pop('Estatus_de_proyecto')
+            self.fields.pop('estatus')
 
         def clean_descripcion(self):
             descripcion = self.cleaned_data.get('descripcion')

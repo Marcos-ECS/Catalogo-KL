@@ -48,9 +48,16 @@
             </div>
 
             <div class="mb-3">
-                {{ form.Estatus_de_proyecto.label_tag }}
-                {{ form.Estatus_de_proyecto }}
+                <label for="estatus" class="form-label"><strong>Estatus del proyecto:</strong></label>
+                <select id="estatus" name="estatus" class="form-select">
+                    {% for estatus in estatus_disponibles %}
+                        <option value="{{ estatus.id }}" {% if estatus.id == estatus_actual %}selected{% endif %}>
+                            {{ estatus.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
+            
         {% else %}
             <div class="mb-4">
                 <p><strong>Descripción:</strong> {{ descripcion|linebreaksbr }}</p>

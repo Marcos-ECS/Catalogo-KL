@@ -26,11 +26,19 @@
                 <h5 class="card-title text-center">
                     <a href="{% url 'detail_project' Proyecto.id %}" class="text-decoration-none text-dark">{{ Proyecto.titulo }}</a>
                 </h5>
+
                 <p class="card-text flex-grow-1">{{ Proyecto.descripcion|truncatechars:100 }}</p>
                 {% if user.is_authenticated %}
-                    <p class="mb-1"><strong>Subido por:</strong> {{ Proyecto.Empleado_Responsable.first_name }} {{ Proyecto.Empleado_Responsable.last_name }}</p>
+                    <p class="mb-1"><strong>Subido por:</strong> 
+                        {% if Proyecto.Empleado_Responsable.first_name or Proyecto.Empleado_Responsable.last_name %}
+                            {{ Proyecto.Empleado_Responsable.first_name }} {{ Proyecto.Empleado_Responsable.last_name }}
+                        {% else %}
+                            {{ Proyecto.Empleado_Responsable.username }}
+                        {% endif %}
+                    </p>
                     <p class="mb-1"><strong>Fecha de subida:</strong> {{ Proyecto.FechaDeAgregado|date:"d M Y" }}</p>
                 {% endif %}
+                
                 <!-- Botón para ver más -->
                 <a href="{% url 'detail_project' Proyecto.id %}" class="btn btn-primary mt-auto">Más información</a>
             </div>

@@ -12,8 +12,15 @@
                 {{ task.form.titulo }}
             </div>
             <div class="me-3">
-                <label for="estatus" class="form-label">{{ task.form.estatus.label }}</label>
-                {{ task.form.estatus }}
+                <label for="estatus" class="form-label">Estatus</label>
+                <select id="estatus" name="estatus" class="form-select">
+                    <option value="">Todos</option>
+                    {% for estatus in estatus_disponibles %}
+                        <option value="{{ estatus.id }}" {% if request.GET.estatus == estatus.id|stringformat:"s" %}selected{% endif %}>
+                            {{ estatus.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>                
             </div>
             <div>
                 <button type="submit" class="btn btn-primary me-2">Buscar</button>
@@ -33,11 +40,16 @@
                     Descargar lista de proyectos
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownCSV">
+                    {% for estatus in estatus_disponibles %}
+                        <li>
+                            <a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro={{ estatus.id }}">
+                                {{ estatus.nombre }}
+                            </a>
+                        </li>
+                    {% endfor %}
                     <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=all">Todos los proyectos</a></li>
-                    <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=activos">Proyectos activos</a></li>
-                    <li><a class="dropdown-item" href="{% url 'descargar_csv' %}?filtro=inactivos">Proyectos inactivos</a></li>
                 </ul>
-            </div>
+            </div>            
         </div>
     </div>
 </div>
@@ -67,10 +79,12 @@
                     {% endif %}
                 </td>
                 <td>
-                    {% if Proyecto.Estatus_de_proyecto == 'Si' %}
-                        <span class="badge bg-success">Activo</span>
+                    {% if Proyecto.estatus %}
+                        <span class="badge" style="background-color: {{ Proyecto.estatus.color }};">
+                            {{ Proyecto.estatus.nombre }}
+                        </span>
                     {% else %}
-                        <span class="badge bg-secondary">Inactivo</span>
+                        <span class="badge bg-secondary">Sin estatus</span>
                     {% endif %}
                 </td>
                 <td>{{ Proyecto.descripcion|truncatechars:50 }}</td>
