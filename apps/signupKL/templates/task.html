@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1 class="mb-4">Menú de proyectos (Editar, habilitar o deshabilitar proyecto)</h1>
+<h1 class="mb-4">Menú de proyectos (Crear, editar, cambiar estatus de proyectos)</h1>
 
 <!-- Contenedor estilizado para el buscador, creación y descarga -->
 <div class="card shadow-sm mb-4" style="background-color: #f8f9fa;">
@@ -8,11 +8,11 @@
         <!-- Formulario de búsqueda -->
         <form method="get" class="d-flex align-items-center mb-3">
             <div class="me-3">
-                <label for="titulo" class="form-label">{{ task.form.titulo.label }}</label>
+                <label for="titulo" class="form-label">{{ task.form.titulo.label }}</label><br>
                 {{ task.form.titulo }}
             </div>
             <div class="me-3">
-                <label for="estatus" class="form-label">Estatus</label>
+                <label for="estatus" class="form-label">Estatus</label><br>
                 <select id="estatus" name="estatus" class="form-select">
                     <option value="">Todos</option>
                     {% for estatus in estatus_disponibles %}
@@ -22,7 +22,7 @@
                     {% endfor %}
                 </select>                
             </div>
-            <div>
+            <div><br>
                 <button type="submit" class="btn btn-primary me-2">Buscar</button>
                 <a href="{% url 'task' %}" class="btn btn-secondary">Limpiar filtro</a>
             </div>

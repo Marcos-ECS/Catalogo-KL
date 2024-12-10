@@ -10,40 +10,33 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <style>
-        /* Estilo para el dropdown */
         .dropdown-menu {
-            background-color: #343a40; /* Fondo oscuro para que contraste */
+            background-color: #343a40;
         }
         .dropdown-item,
         .btn-link.nav-link {
-            color: #ffffff !important; /* Texto blanco para visibilidad */
+            color: #ffffff !important;
         }
         .dropdown-item:hover,
         .btn-link.nav-link:hover {
-            background-color: #495057; /* Cambia el fondo en hover para mejorar visibilidad */
+            background-color: #495057;
             color: #ffffff !important;
         }
-
         html, body {
-        height: 100%; /* Asegúrate de que el body y html ocupen todo el alto */
-        display: flex;
-        flex-direction: column; /* Diseño flexible con dirección en columna */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
-
         main {
-            flex: 1; /* El contenido principal ocupa el espacio restante */
+            flex: 1;
         }
-
         footer {
-            margin-top: auto; /* Empuja el footer hacia el final */
+            margin-top: auto;
         }
     </style>
-
 </head>
-<body style="background: url('{% static "images/background.jpg" %}') no-repeat center center fixed; background-size: cover;">
 
-<body>
-    <!-- Navbar de Bootstrap -->
+<body style="background: url('{% static "images/background.jpg" %}') no-repeat center center fixed; background-size: cover;">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">KLUGE LAB</a>
@@ -52,27 +45,43 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    {% if user.is_authenticated %}
-                        <!-- Menú de proyectos -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="/signupKL/task/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Menú de proyectos
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/signupKL/task/">Menú general</a></li>
-                                <li><a class="dropdown-item" href="{% url 'published_projects' %}">Proyectos publicados</a></li>
-                            </ul>
-                        </li>
-    
-                        <!-- Registrar nuevos usuarios -->
+                    {% if es_visitante %}
+                        <!-- Visitantes -->
                         <li class="nav-item">
-                            <a class="nav-link" href="/signupKL">Registrar usuarios nuevos</a>
+                            <a class="nav-link" href="{% url 'published_projects' %}">Proyectos</a>
                         </li>
-    
-                        <!-- Usuario con foto de perfil -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'loginkl' %}">Iniciar sesión</a>
+                        </li>
+                    {% else %}
+                        {% if es_cliente %}
+                            <!-- Solo clientes -->
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'published_projects' %}">Proyectos</a>
+                            </li>
+                        {% endif %}
+                        {% if es_empleado or es_admin %}
+                            <!-- Empleados y admins -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Menú de proyectos
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'task' %}">Menú general</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'published_projects' %}">Proyectos publicados</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        {% if es_admin %}
+                            <!-- Solo admins -->
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'admin_panel' %}">Panel de administrativo</a>
+                            </li>
+                        {% endif %}
+                        <!-- Usuario autenticado con foto de perfil -->
+                        {% if user.is_authenticated and not request.session.usuario_bloqueado %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <!-- Foto de perfil -->
                                 {% if user.profile.photo %}
                                     <img src="{{ user.profile.photo.url }}" alt="Foto de perfil" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
                                 {% else %}
@@ -86,32 +95,41 @@
                                 <li><a class="dropdown-item" href="{% url 'logoutkl' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Cerrar sesión</a></li>
                             </ul>
                         </li>
-                        <!-- Formulario de cierre de sesión oculto -->
+                        {% else %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if user.profile.photo %}
+                                    <img src="{{ user.profile.photo.url }}" alt="Foto de perfil" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{% static 'images/default-profile.jpg' %}" alt="Foto predeterminada" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% endif %}
+                                {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'logoutkl' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Cerrar sesión</a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
                         <form id="logout-form" method="POST" action="{% url 'logoutkl' %}" style="display: none;">
                             {% csrf_token %}
                         </form>
-                    {% else %}
-                        <!-- Enlaces para usuarios no autenticados -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'published_projects' %}">Proyectos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'loginkl' %}">Iniciar sesión</a>
-                        </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
-    
-    {% if request.session.profile_incomplete %}
+        
+    {% if request.session.usuario_bloqueado %}
+    <div class="alert alert-danger text-center mt-3" role="alert">
+        Tu cuenta está bloqueada. Por favor, contacta con un administrador.
+    </div>
+    {% elif request.session.profile_incomplete %}
     <div class="alert alert-warning text-center mt-3" role="alert">
         Tu perfil está incompleto. Por favor, <a href="{% url 'editar_perfil' %}" class="alert-link">complétalo aquí</a>.
     </div>
     {% endif %}
     
-    <!-- Bloque de contenido de la página -->
-     {% if container %}
+    {% if container %}
         <div class="container mt-4">
     {% endif %}
 
@@ -121,7 +139,6 @@
     {% if container %}
         </div>
     {% endif %}
-    
 </body>
 <!-- Footer -->
 <footer class="bg-dark text-white mt-auto">

@@ -28,11 +28,42 @@
             <div class="card shadow-sm p-4">
                 <form method="POST">
                     {% csrf_token %}
-                    {{ form.as_p }}
                     
+                    <!-- Campo de Nombre de Usuario -->
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">{{ form.username.label }}:</label>
+                        {{ form.username }} 
+                    </div>
+                    
+                    <!-- Campo de Email -->
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">{{ form.email.label }}:</label>
+                        {{ form.email }}
+                    </div>
+                    
+                    <!-- Campo de Contraseña -->
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">{{ form.password.label }}:</label>
+                        {{ form.password }}
+                    </div>
+                    
+                    <!-- Campo de Confirmar Contraseña -->
+                    <div class="mb-3">
+                        <label for="id_confirm_password" class="form-label">{{ form.confirm_password.label }}:</label>
+                        {{ form.confirm_password }}
+                    </div>
+                    
+                    <!-- Campo de Tipo de Usuario -->
+                    <div class="mb-3">
+                        <label for="id_tipo_usuario" class="form-label">{{ form.tipo_usuario.label }}:</label>
+                        {{ form.tipo_usuario }}
+                    </div>
+                    
+                    <!-- Botón de Enviar -->
                     <button type="submit" class="btn btn-primary w-100">Registrar</button>
                 </form>
             </div>
+
             
         </div>
     </div>

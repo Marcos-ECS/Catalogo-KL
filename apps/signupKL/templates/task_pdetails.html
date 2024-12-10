@@ -47,7 +47,15 @@
                 <p>{{ proyecto.descripcion|linebreaksbr }}</p>
             </div>
             <p><strong>Fecha de agregado:</strong> {{ proyecto.FechaDeAgregado }}</p>
-            <a href="{% url 'descargar_proyecto_pdf' project_id=proyecto.id %}" class="btn btn-primary mt-3">Descargar en PDF</a>
+            <a href="{% if user.is_authenticated %}
+            {% url 'descargar_proyecto_pdf' project_id=proyecto.id %}
+         {% else %}
+            {% url 'descargar_proyecto_pdf_visitantes' project_id=proyecto.id %}
+         {% endif %}" 
+   class="btn btn-primary mt-3">
+    Descargar en PDF
+</a>
+
         </div>
     
         <!-- Portada -->

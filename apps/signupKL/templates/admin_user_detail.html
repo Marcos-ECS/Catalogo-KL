@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Perfil del Usuario</h1>
+    
+    <div class="card shadow-sm">
+        <div class="card-body text-center">
+            <!-- Foto de perfil -->
+            {% if perfil.photo %}
+                <img src="{{ perfil.photo.url }}" alt="Foto de perfil" class="rounded-circle mb-4" style="width: 150px; height: 150px; object-fit: cover;">
+            {% else %}
+                <img src="{% static 'images/default-profile.jpg' %}" alt="Foto predeterminada" class="rounded-circle mb-4" style="width: 150px; height: 150px; object-fit: cover;">
+            {% endif %}
+
+            <!-- Información del usuario -->
+            <h5 class="card-title">Información General</h5>
+            <p><strong>Nombre de Usuario:</strong> {{ usuario.username }}</p>
+            <p><strong>Nombre Completo:</strong> {{ usuario.get_full_name|default:"Sin nombre" }}</p>
+            <p><strong>Email:</strong> {{ usuario.email|default:"No proporcionado" }}</p>
+            <p><strong>Tipo:</strong> 
+                {% for grupo in usuario.groups.all %}
+                    {{ grupo.name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    Bloqueado
+                {% endfor %}
+            </p>
+            <p><strong>Fecha de Registro:</strong> {{ usuario.date_joined|date:"d M Y, H:i" }}</p>
+        </div>
+    </div>
+    <a href="{% url 'listar_usuarios' %}" class="btn btn-secondary mt-3">Volver a la lista</a>
+</div>
+{% endblock %}

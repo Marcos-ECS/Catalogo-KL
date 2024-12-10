@@ -1,10 +1,12 @@
 from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.forms import modelformset_factory
 from .models import Proyecto, ImagenesdeProyecto, UserProfile
 from django import forms
 from django.utils.translation import gettext_lazy as _ 
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 
 
@@ -54,28 +56,42 @@ ImagenesdeProyectoFormSetSoloLectura = modelformset_factory(
 )
 
 
-class RegistroFormulario(UserCreationForm):
+class RegistroFormulario(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, label="Contraseña")
+    confirm_password = forms.CharField(widget=forms.PasswordInput, label="Confirmar contraseña")
+    tipo_usuario = forms.ChoiceField(choices=UserProfile.TIPOS_USUARIO, label="Tipo de Usuario")
+
     class Meta:
         model = User
-        fields = ['username', 'password1', 'password2']
-        labels = {
-            'username': _('Nombre de usuario'),
-            'password1': _('Contraseña'),
-            'password2': _('Confirmar contraseña'),
-        }
-        help_texts = {
-            'username': _('Requerido. 150 caracteres o menos. Letras, dígitos y @/./+/-/_ solamente.'),
-        }
-        error_messages = {
-            'username': {
-                'unique': _('Este nombre de usuario ya está en uso.'),
-            },
-            'password_mismatch': _('Las contraseñas no coinciden.'),
-        }
-    def __init__(self, *args, **kwargs):
-        super(RegistroFormulario, self).__init__(*args, **kwargs)
-        self.fields['password1'].label = 'Contraseña'  # Cambia el label de password1
-        self.fields['password2'].label = 'Confirmar contraseña'  # Cambia el label de password2
+        fields = ['username', 'email', 'password']
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        try:
+            validate_password(password)  # Validar la contraseña
+        except ValidationError as e:
+            raise forms.ValidationError(e.messages)
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password and confirm_password and password != confirm_password:
+            self.add_error('confirm_password', "Las contraseñas no coinciden.")
+            return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+            # Asignar al grupo según el tipo de usuario
+            tipo_usuario = self.cleaned_data['tipo_usuario']
+            group = Group.objects.get(name=tipo_usuario)  # Esto asume que los grupos ya existen
+            user.groups.add(group)
+        return user
 
 
 class PerfilUsuarioForm(forms.ModelForm):

@@ -20,30 +20,33 @@ from reportlab.lib.utils import ImageReader
 from textwrap import wrap
 from django.utils.timezone import localtime
 from apps.signupKL.models import EstatusDeProyecto
+from .decorators import usuario_tipo_permitido, verificar_usuario_bloqueado
+from django.db.models import Q
 
 
 
 # Create your views here.
 #Registro de usuaurios
 @check_profile_completion
-@login_required
+@login_required(login_url='loginkl')
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
 def signup(request):
     if request.method == 'POST':
         form = RegistroFormulario(request.POST)
         if form.is_valid():
-            # Crear usuario
             form.save()
             messages.success(request, 'Usuario registrado correctamente.')
-            return redirect('task')  # Redirigir a la página deseada
+            return redirect('admin_panel')
         else:
             messages.error(request, 'Por favor corrige los errores a continuación.')
     else:
         form = RegistroFormulario()
-    
+
     return render(request, 'signkl.html', {'form': form, 'container': True})
 
 @check_profile_completion
-@login_required(login_url='loginkl')    
+@login_required(login_url='loginkl')
+@usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado'])
 def task(request):
     proyectos = Proyecto.objects.all().order_by('-FechaDeAgregado')
     task = ProyectoFilter(request.GET, queryset=proyectos)
@@ -56,7 +59,8 @@ def task(request):
 
 
 @check_profile_completion
-@login_required(login_url='loginkl')  
+@login_required(login_url='loginkl')
+@usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado'])
 def crear_proyectos(request):
      if request.method == 'GET':
          form_proyecto = ProyectoFormulario()
@@ -101,7 +105,8 @@ def crear_proyectos(request):
                 })
 
 @check_profile_completion
-@login_required(login_url='loginkl')          
+@login_required(login_url='loginkl')
+@usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado'])
 def Editar_proyectos(request, project_id):
     task = get_object_or_404(Proyecto, pk=project_id)
     
@@ -185,13 +190,15 @@ def Editar_proyectos(request, project_id):
                 'error': "Error al actualizar proyecto"
             })
 
-
+@check_profile_completion
+@verificar_usuario_bloqueado
 def Proyectos_publicado(request):
     task = Proyecto.objects.filter(estatus__nombre='Activo').order_by('-FechaDeAgregado')
     return render(request, 'task_publicados.html', {'task': task, 'container': True})
 
 @check_profile_completion
-@login_required(login_url='loginkl')  
+@login_required(login_url='loginkl')
+@usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado'])
 def Editar_proyecto_NO_autor(request, project_id):
     # Obtener el proyecto y verificar que exista
     task = get_object_or_404(Proyecto, pk=project_id)
@@ -235,7 +242,9 @@ def logoutkl(request):
      messages.info(request, 'Has cerrado la sesion')
      return redirect('home')
 
-# Exportador de PDF con cabecera y pie de página
+# Exportador de PDF de proyectos para usuarios registrados
+@login_required
+@usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado', 'Cliente'])
 def descargar_proyecto_pdf(request, project_id):
     proyecto = get_object_or_404(Proyecto, pk=project_id)
 
@@ -346,6 +355,81 @@ def descargar_proyecto_pdf(request, project_id):
     return response
 
 
+def descargar_proyecto_pdf_visitantes(request, project_id):
+    proyecto = get_object_or_404(Proyecto, pk=project_id)
+
+    # Configurar la respuesta como archivo PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{proyecto.titulo}.pdf"'
+
+    # Crear el PDF
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+
+    def draw_header_footer():
+        # Cabecera
+        p.setFont("Helvetica-Bold", 14)
+        p.setFillColor(colors.darkblue)
+        p.drawString(50, height - 50, "Klugelab - Reporte de Proyecto")
+        p.line(50, height - 55, width - 50, height - 55)
+
+        # Pie de página
+        p.setFont("Helvetica", 10)
+        p.setFillColor(colors.gray)
+        p.drawString(50, 30, "Generado por Klugelab")
+        p.drawString(width - 100, 30, f"Pág. {p.getPageNumber()}")
+        p.line(50, 40, width - 50, 40)
+
+    def add_watermark():
+        # Marca de agua
+        p.saveState()
+        p.setFont("Helvetica-Bold", 60)
+        p.setFillColor(colors.lightgrey)
+        p.translate(width / 2, height / 2)
+        p.rotate(45)  # Rotar el texto
+        p.drawCentredString(0, 0, "KLUGE LAB")
+        p.restoreState()
+
+    # Dibujar cabecera, pie de página y marca de agua
+    add_watermark()
+    draw_header_footer()
+
+    # Contenido principal
+    y_position = height - 100
+    p.setFont("Helvetica-Bold", 16)
+    p.setFillColor(colors.black)
+
+    # Título del proyecto
+    p.drawString(50, y_position, f"Proyecto: {proyecto.titulo}")
+    y_position -= 30
+
+    # Descripción con saltos de línea respetados
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y_position, "Descripción:")
+    y_position -= 20
+    p.setFont("Helvetica", 12)
+
+    description = proyecto.descripcion
+    lines = description.split('\n')  # Dividir la descripción en líneas según los saltos de línea originales
+    for paragraph in lines:
+        wrapped_text = wrap(paragraph, 80)  # Ajustar el ancho de cada párrafo
+        for line in wrapped_text:
+            if y_position < 100:
+                p.showPage()
+                add_watermark()
+                draw_header_footer()
+                y_position = height - 100
+            p.drawString(50, y_position, line)
+            y_position -= 15
+        y_position -= 10  # Añadir espacio entre párrafos
+
+
+    # Finalizar el PDF
+    p.showPage()
+    p.save()
+    return response
+
+
 
 @login_required(login_url='loginkl')  
 def descargar_csv(request):
@@ -398,6 +482,7 @@ def descargar_csv(request):
 #Perfil de usuario registrado
 
 @check_profile_completion
+@usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado', 'Cliente'])
 @login_required(login_url='loginkl')  
 def perfil(request):
     return render(request, 'profile.html', {'usuario': request.user, 'container': True})
@@ -405,6 +490,8 @@ def perfil(request):
 #Editar perfil
 
 @check_profile_completion
+@verificar_usuario_bloqueado
+@usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado', 'Cliente'])
 @login_required(login_url='loginkl')  
 def editar_perfil(request):
     user_profile = request.user.profile  # Relación OneToOne entre User y UserProfile
@@ -428,5 +515,66 @@ def editar_perfil(request):
         'container': True
     })
 
+def error_permisos(request):
+    return render(request, 'error_de_permisos.html', {'mensaje': 'No tienes permiso para acceder a esta página.'})
 
 
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+@login_required
+def admin_panel(request):
+    return render(request, 'admin_panel.html', {'container': True})
+
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+@login_required
+def listar_usuarios(request):
+    usuarios = User.objects.all().select_related('profile')  # Para optimizar consultas
+    usuarios_con_grupos = [
+        {
+            'usuario': usuario,
+            'grupos': ', '.join(grupo.name for grupo in usuario.groups.all()) or "Bloqueado"
+        }
+        for usuario in usuarios
+    ]
+    return render(request, 'admin_list_users.html', {'usuarios_con_grupos': usuarios_con_grupos})
+
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+@login_required
+def detalle_usuario(request, usuario_id):
+    usuario = get_object_or_404(User, id=usuario_id)
+    perfil = usuario.profile  # Relación OneToOne con UserProfile
+    return render(request, 'admin_user_detail.html', {'usuario': usuario, 'perfil': perfil})
+
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+def buscar_usuarios(request):
+    query = request.GET.get('q', '').strip()  # Obtener y limpiar el término de búsqueda
+    filtro = request.GET.get('filtro', 'todos').strip().lower()  # Asegurar formato consistente
+
+    # Filtro base: todos los usuarios
+    usuarios = User.objects.all()
+
+    # Aplicar el filtro de búsqueda
+    if query:
+        usuarios = usuarios.filter(
+            Q(username__icontains=query) |  # Buscar por username
+            Q(first_name__icontains=query) |  # Buscar por primer nombre
+            Q(last_name__icontains=query)  # Buscar por apellido
+        )
+
+    # Aplicar el filtro por tipo de usuario
+    if filtro != 'todos':
+        if filtro == 'bloqueados':
+            usuarios = usuarios.filter(groups__isnull=True)  # Usuarios sin grupo
+        else:
+            usuarios = usuarios.filter(groups__name__iexact=filtro)  # Usuarios con un grupo específico (insensible a mayúsculas)
+
+    usuarios_con_grupos = []
+    for usuario in usuarios:
+        grupos = ', '.join([group.name for group in usuario.groups.all()]) or 'Bloqueado'
+        usuarios_con_grupos.append({'usuario': usuario, 'grupos': grupos})
+
+    return render(request, 'admin_list_users.html', {
+        'usuarios_con_grupos': usuarios_con_grupos,  # Procesados con grupos
+        'query': query,
+        'filtro': filtro,
+        'tipos_usuarios': ['todos', 'Admin', 'Empleado', 'Cliente', 'bloqueados'],  # Tipos de usuario disponibles
+    })

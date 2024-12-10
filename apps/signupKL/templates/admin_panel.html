@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="text-center mt-4">Panel de administrativo</h1>
+<div class="row mt-5">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Gestionar Usuarios:</h5>
+            <p class="card-text">Lista de usuarios registrados y sus grupos.</p>
+            <a href="{% url 'listar_usuarios' %}" class="btn btn-primary">Ver Usuarios</a>
+        </div>
+        <div class="card-body">
+            <p class="card-text">Registrar usuarios a la plataforma.</p>
+            <a href="{% url 'signup' %}" class="btn btn-primary">Registrar nuevo usuario</a>
+        </div>
+        <div class="card-body">
+            <p class="card-text">Bloquear/desbloquear usuarios en la plataforma.</p>
+            <a href="" class="btn btn-danger">Bloquear usuarios</a>
+        </div>
+    </div>
+<div><br></div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Estadisticas:</h5>
+            <p class="card-text">Inicios de sesion en la plataforma.</p>
+            <a href="" class="btn btn-primary">Ver inicios de sesion</a>
+        </div>
+        <div class="card-body">
+            <p class="card-text">Logs de proyectos.</p>
+            <a href="" class="btn btn-primary">Ver logs</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

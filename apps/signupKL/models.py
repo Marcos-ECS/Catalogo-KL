@@ -42,8 +42,14 @@ class ImagenesdeProyecto(models.Model):
 
 # Modelo de Perfil de Usuario
 class UserProfile(models.Model):
+    TIPOS_USUARIO = [
+        ('Empleado', 'Empleado'),
+        ('Admin', 'Admin'),
+        ('Cliente', 'Cliente'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    tipo_usuario = models.CharField(max_length=20, choices=TIPOS_USUARIO, default='Empleado')
 
     def __str__(self):
-        return f"Perfil de {self.user.username}"
+        return f"Perfil de {self.user.username} ({self.tipo_usuario})"
