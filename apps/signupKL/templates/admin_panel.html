@@ -14,7 +14,7 @@
         </div>
         <div class="card-body">
             <p class="card-text">Bloquear/desbloquear usuarios en la plataforma.</p>
-            <a href="" class="btn btn-danger">Bloquear usuarios</a>
+            <a href="{% url 'listar_usuarios_sin_admins' %}" class="btn btn-danger">Bloquear usuarios</a>
         </div>
     </div>
 <div><br></div>
@@ -22,11 +22,15 @@
         <div class="card-body">
             <h5 class="card-title">Estadisticas:</h5>
             <p class="card-text">Inicios de sesion en la plataforma.</p>
-            <a href="" class="btn btn-primary">Ver inicios de sesion</a>
+            <a href="{% url 'exportar_logs_sesion' %}" class="btn btn-primary">
+                <i class="bi bi-download"></i> Descargar
+            </a>
         </div>
         <div class="card-body">
             <p class="card-text">Logs de proyectos.</p>
-            <a href="" class="btn btn-primary">Ver logs</a>
+            <a href="{% url 'exportar_logs_proyectos' %}" class="btn btn-primary">
+                <i class="bi bi-download"></i> Descargar
+            </a>
         </div>
     </div>
 </div>

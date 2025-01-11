@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from functools import wraps
-
+from django.shortcuts import render
 
 def usuario_visitante(view_func):
     def wrapper_func(request, *args, **kwargs):
@@ -53,17 +53,11 @@ def check_profile_completion(view_func):
 
 
 def verificar_usuario_bloqueado(view_func):
-    """
-    Decorador para verificar si el usuario está bloqueado (sin grupos).
-    Si está bloqueado, se muestra un mensaje de advertencia.
-    """
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated and not request.user.groups.exists():
-            # Usuario sin grupos: marcar como bloqueado en la sesión
-            request.session['usuario_bloqueado'] = True
-        else:
-            # Usuario con grupos: limpiar mensaje de bloqueado si existe
-            request.session.pop('usuario_bloqueado', None)
-
+            # Redirige o muestra mensaje si está bloqueado
+            return render(request, 'error_de_permisos.html', {
+                'mensaje': 'Tu cuenta está bloqueada. Por favor, contacta al administrador.'
+            })
         return view_func(request, *args, **kwargs)
     return wrapper

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Bloquear Usuarios</h1>
+
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} text-center">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Tabla de usuarios -->
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Nombre de Usuario</th>
+                <th>Nombre Completo</th>
+                <th>Email</th>
+                <th>Estatus</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in usuarios_con_grupos %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.usuario.username }}</td>
+                <td>{{ item.usuario.get_full_name|default:"Sin nombre" }}</td>
+                <td>{{ item.usuario.email|default:"No proporcionado" }}</td>
+                <td>{{ item.grupos }}</td>
+                <td class="text-center">
+                    {% if item.grupos == "Bloqueado" %}
+                        <!-- Botón para desbloquear usuario -->
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#confirmModal" 
+                                data-username="{{ item.usuario.username }}" 
+                                data-action="{% url 'desbloquear_usuario' item.usuario.id %}">
+                            <i class="bi bi-unlock"></i> <!-- Ícono de desbloquear -->
+                            Desbloquear
+                        </button>
+                    {% else %}
+                        <!-- Botón para bloquear usuario -->
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal" 
+                                data-username="{{ item.usuario.username }}" 
+                                data-action="{% url 'bloquear_usuario' item.usuario.id %}">
+                            <i class="bi bi-lock"></i> <!-- Ícono de candado -->
+                            Bloquear
+                        </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No hay usuarios disponibles para bloquear.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmar acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas realizar esta acción para el usuario <strong id="modal-username"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="confirmForm" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // JavaScript para configurar el modal
+    const confirmModal = document.getElementById('confirmModal');
+    confirmModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;  // Botón que activó el modal
+        const username = button.getAttribute('data-username');  // Nombre del usuario
+        const actionUrl = button.getAttribute('data-action');  // URL de la acción
+
+        // Actualizar los elementos del modal
+        document.getElementById('modal-username').textContent = username;
+        document.getElementById('confirmForm').setAttribute('action', actionUrl);
+    });
+</script>
+{% endblock %}

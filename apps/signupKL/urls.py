@@ -12,6 +12,7 @@ urlpatterns = [
     path('task_published', views.Proyectos_publicado, name='published_projects'),
     path('task/<int:project_id>', views.Editar_proyectos, name='project_edit'),
     path('task/<int:project_id>/', views.Detalles_proyecto, name='detail_project'),
+    path('task/auth/<int:project_id>/', views.Detalles_proyecto_autenticado, name='detail_project_autenticado'),
     path('proyecto/<int:project_id>/descargar/', views.descargar_proyecto_pdf, name='descargar_proyecto_pdf'),
     path('proyecto/<int:project_id>/editar/', views.Editar_proyectos, name='project_edit'),
     path('proyecto/<int:project_id>/ver/', views.Editar_proyecto_NO_autor, name='Editar_proyecto_NO_autor'),
@@ -26,6 +27,12 @@ urlpatterns = [
     path('admin/usuarios/<int:usuario_id>/', views.detalle_usuario, name='detalle_usuario'),
     path('buscar_usuarios/', views.buscar_usuarios, name='buscar_usuarios'),
     path('proyecto/<int:project_id>/descargar/visitantes/', views.descargar_proyecto_pdf_visitantes, name='descargar_proyecto_pdf_visitantes'),
+    path('task_published_autenticados', views.Proyectos_publicado_autenticados, name='published_projects_autenticados'),
+    path('admin/listar-usuarios-sin-admins/', views.listar_usuarios_sin_admins, name='listar_usuarios_sin_admins'),
+    path('admin/bloquear-usuario/<int:usuario_id>/', views.bloquear_usuario, name='bloquear_usuario'),
+    path('admin/desbloquear-usuario/<int:usuario_id>/', views.desbloquear_usuario, name='desbloquear_usuario'),
+    path('admin/exportar-logs-sesion/', views.exportar_logs_inicio_sesion, name='exportar_logs_sesion'),
+    path('admin/exportar-logs-proyectos/', views.exportar_logs_proyectos, name='exportar_logs_proyectos'),
 
 ]
 

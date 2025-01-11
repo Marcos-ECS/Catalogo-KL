@@ -6,7 +6,7 @@ from django.contrib.auth import login, logout
 from django.db import IntegrityError
 from django.contrib import messages
 from .forms import ProyectoFormulario, RegistroFormulario, ImagenesdeProyectoFormSetCrear, ImagenesdeProyectoFormSetEditar, ImagenesdeProyectoFormSetSoloLectura, UserProfileForm
-from .models import Proyecto, ImagenesdeProyecto 
+from .models import Proyecto, ImagenesdeProyecto, LoginLog, ProyectoLog 
 from django.contrib.auth.decorators import login_required
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -22,6 +22,8 @@ from django.utils.timezone import localtime
 from apps.signupKL.models import EstatusDeProyecto
 from .decorators import usuario_tipo_permitido, verificar_usuario_bloqueado
 from django.db.models import Q
+from django.contrib.auth.models import Group
+
 
 
 
@@ -88,6 +90,14 @@ def crear_proyectos(request):
                     imagen_proyecto.proyecto = new_project  # Asignar el proyecto a la imagen
                     imagen_proyecto.save()
 
+                # Registrar log
+                registrar_proyecto_log(
+                    proyecto=new_project,
+                    usuario=request.user,
+                    accion='creado',
+                    descripcion=f"Proyecto '{new_project.titulo}' creado con estatus '{estatus_default.nombre}'."
+                )
+
                 return redirect ('task')
             else:
                 # Capturar errores específicos
@@ -141,12 +151,14 @@ def Editar_proyectos(request, project_id):
             if form.is_valid() and formset_imagenes.is_valid():
                 # Guardar cambios en el proyecto
                 proyecto = form.save(commit=False)
+                cambios = []
 
                 # Actualizar el estatus seleccionado
                 nuevo_estatus_id = request.POST.get('estatus')  # Obtener el ID del estatus seleccionado
                 if nuevo_estatus_id:
                     nuevo_estatus = EstatusDeProyecto.objects.get(id=nuevo_estatus_id)
                     proyecto.estatus = nuevo_estatus
+                    cambios.append(f"Estatus cambiado a '{nuevo_estatus.nombre}'.")
 
                 proyecto.save()
 
@@ -157,12 +169,22 @@ def Editar_proyectos(request, project_id):
                     # Verificar si la imagen está marcada para eliminar
                     if form.cleaned_data.get('DELETE'):
                         if imagen_proyecto.pk:  # Si existe en la BD, eliminarla
+                            cambios.append(f"Imagen '{imagen_proyecto.imagen.name}' eliminada.")
                             imagen_proyecto.delete()
                     # Guardar solo si hay una imagen nueva
                     elif form.cleaned_data.get('imagen'):
                         imagen_proyecto.proyecto = task  # Asignar el proyecto a la imagen
                         imagen_proyecto.save()
+                        cambios.append(f"Imagen '{imagen_proyecto.imagen.name}' añadida.")
 
+                # Registrar log si hubo cambios
+                if cambios:
+                    registrar_proyecto_log(
+                        proyecto=task,
+                        usuario=request.user,
+                        accion='editado',
+                        descripcion="; ".join(cambios)
+                    )
                 return redirect('task')
 
             else:
@@ -196,9 +218,22 @@ def Proyectos_publicado(request):
     task = Proyecto.objects.filter(estatus__nombre='Activo').order_by('-FechaDeAgregado')
     return render(request, 'task_publicados.html', {'task': task, 'container': True})
 
+
+@login_required(login_url='loginkl')
+@usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado', 'Cliente'])
+@verificar_usuario_bloqueado
+def Proyectos_publicado_autenticados(request):
+    # Filtrar proyectos con los estatus deseados
+    task = Proyecto.objects.filter(
+        estatus__nombre__in=['En producción', 'Activo', 'Finalizado']
+    ).order_by('-FechaDeAgregado')
+    return render(request, 'task_publicados_autenticados.html', {'task': task, 'container': True})
+
+
 @check_profile_completion
 @login_required(login_url='loginkl')
 @usuario_tipo_permitido(tipos_permitidos=['Admin', 'Empleado'])
+@verificar_usuario_bloqueado
 def Editar_proyecto_NO_autor(request, project_id):
     # Obtener el proyecto y verificar que exista
     task = get_object_or_404(Proyecto, pk=project_id)
@@ -230,11 +265,25 @@ def Editar_proyecto_NO_autor(request, project_id):
 #         task.delete()
 #         return redirect('task')
 
-
+#Detalle de proyecto usuario sin iniciar sesion
+@verificar_usuario_bloqueado
 def Detalles_proyecto(request, project_id):
     # Obtener el proyecto o lanzar un error 404 si no existe
     proyecto = get_object_or_404(Proyecto, pk=project_id)
+    # Verificar permisos para ver el proyecto
+    estatus_restringidos = ['Propuesto', 'En revisión', 'En planificación', 'En producción','Suspendido', 'Inactivo', 'Cancelado', 'Archivado']  # Estatus que no deben ser visibles para usuarios no autenticados
+    if not request.user.is_authenticated and proyecto.estatus and proyecto.estatus.nombre in estatus_restringidos:
+        return redirect('error_permisos')  # Redirigir a una página de error de permisos
+
     return render(request, 'task_pdetails.html', {'proyecto': proyecto, 'container': True})
+
+#Detalle de proyecto para usuario autenticado
+@login_required
+@verificar_usuario_bloqueado
+def Detalles_proyecto_autenticado(request, project_id):
+    # Obtener el proyecto o lanzar un error 404 si no existe
+    proyecto = get_object_or_404(Proyecto.objects.select_related('estatus'), pk=project_id)
+    return render(request, 'task_pdetails_autenticados.html', {'proyecto': proyecto, 'container': True})
 
 @login_required(login_url='loginkl')  
 def logoutkl(request):
@@ -578,3 +627,112 @@ def buscar_usuarios(request):
         'filtro': filtro,
         'tipos_usuarios': ['todos', 'Admin', 'Empleado', 'Cliente', 'bloqueados'],  # Tipos de usuario disponibles
     })
+
+#Listar usuarios sin admin, panel de bloqueo de usuarios
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+@login_required
+def listar_usuarios_sin_admins(request):
+    usuarios = User.objects.exclude(groups__name='Admin').select_related('profile')  # Excluir admins y optimizar consultas
+    usuarios_con_grupos = [
+        {
+            'usuario': usuario,
+            'grupos': ', '.join(grupo.name for grupo in usuario.groups.all()) or "Bloqueado"
+        }
+        for usuario in usuarios
+    ]
+    return render(request, 'admin_block_users.html', {'usuarios_con_grupos': usuarios_con_grupos})
+
+# Bloquear usuarios
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+@login_required
+def bloquear_usuario(request, usuario_id):
+    usuario = get_object_or_404(User, pk=usuario_id)
+
+    # Prevenir que los admins sean bloqueados
+    if usuario.groups.filter(name='Admin').exists():
+        messages.error(request, "No puedes bloquear a un administrador.")
+        return redirect('listar_usuarios_sin_admins')
+
+    # Obtener el último grupo del usuario
+    ultimo_grupo = usuario.groups.first()
+    if ultimo_grupo:
+        # Guardar el último grupo en el perfil del usuario
+        usuario.profile.ultimo_grupo = ultimo_grupo
+        usuario.profile.save()
+
+    # Eliminar todos los grupos del usuario
+    usuario.groups.clear()
+    messages.success(request, f"El usuario {usuario.username} ha sido bloqueado exitosamente.")
+    return redirect('listar_usuarios_sin_admins')
+
+#Desbloquear usuarios
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+@login_required
+def desbloquear_usuario(request, usuario_id):
+    usuario = get_object_or_404(User, pk=usuario_id)
+
+    # Obtener el último grupo almacenado
+    ultimo_grupo = usuario.profile.ultimo_grupo
+    if ultimo_grupo:
+        usuario.groups.add(ultimo_grupo)
+        messages.success(request, f"El usuario {usuario.username} ha sido desbloqueado y asignado al grupo {ultimo_grupo.name}.")
+    else:
+        messages.warning(request, f"No se encontró un grupo previo para el usuario {usuario.username}.")
+    return redirect('listar_usuarios_sin_admins')
+
+
+#logs de edicion de proyectos
+def registrar_proyecto_log(proyecto, usuario, accion, descripcion):
+    ProyectoLog.objects.create(
+        proyecto=proyecto,
+        usuario=usuario,
+        accion=accion,
+        descripcion=descripcion
+    )
+
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+@login_required
+def exportar_logs_inicio_sesion(request):
+    # Configurar la respuesta como archivo CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="logs_inicio_sesion.csv"'
+
+    # Crear el escritor CSV
+    writer = csv.writer(response)
+    writer.writerow(['Usuario', 'Fecha y Hora', 'IP Address', 'Dispositivo'])
+
+    # Obtener los registros de inicio de sesión
+    logs = LoginLog.objects.all().order_by('-fecha_hora')
+    for log in logs:
+        writer.writerow([
+            log.usuario.username,
+            log.fecha_hora.strftime('%Y-%m-%d %H:%M:%S'),
+            log.ip_address or 'No disponible',
+            log.dispositivo or 'No disponible'
+        ])
+
+    return response
+
+@usuario_tipo_permitido(tipos_permitidos=['Admin'])
+@login_required
+def exportar_logs_proyectos(request):
+    # Configurar la respuesta como archivo CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="logs_proyectos.csv"'
+
+    # Crear el escritor CSV
+    writer = csv.writer(response)
+    writer.writerow(['Proyecto', 'Usuario', 'Acción', 'Descripción', 'Fecha y Hora'])
+
+    # Obtener los registros de proyectos
+    logs = ProyectoLog.objects.all().order_by('-fecha_hora')
+    for log in logs:
+        writer.writerow([
+            log.proyecto.titulo,
+            log.usuario.username,
+            log.accion,
+            log.descripcion,
+            log.fecha_hora.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+
+    return response

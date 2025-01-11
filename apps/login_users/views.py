@@ -3,8 +3,11 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.models import Group
 from .forms import LoginFormulario
+from apps.signupKL.decorators import verificar_usuario_bloqueado, check_profile_completion
+from .utils import registrar_login, obtener_ip_dispositivo
 
 # Vista de login
+@verificar_usuario_bloqueado
 def loginkl(request):
     if request.method == 'GET':
         return render(request, 'loginkl.html', {
@@ -21,7 +24,11 @@ def loginkl(request):
             })
         else:
             login(request, user)
-
+             # Registrar el inicio de sesión
+            ip_address = obtener_ip_dispositivo(request)
+            dispositivo = request.META.get('HTTP_USER_AGENT', 'No disponible')  # Obtener información del dispositivo
+            registrar_login(usuario=user, ip_address=ip_address, dispositivo=dispositivo)
+            
             # Verificar el grupo del usuario y redirigir según corresponda
             if user.groups.filter(name='Admin').exists():
                 return redirect('admin_panel')  # Redirige al panel de administración

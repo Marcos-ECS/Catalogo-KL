@@ -57,7 +57,7 @@
                         {% if es_cliente %}
                             <!-- Solo clientes -->
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'published_projects' %}">Proyectos</a>
+                                <a class="nav-link" href="{% url 'published_projects_autenticados' %}">Proyectos</a>
                             </li>
                         {% endif %}
                         {% if es_empleado or es_admin %}
@@ -68,7 +68,7 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{% url 'task' %}">Menú general</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'published_projects' %}">Proyectos publicados</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'published_projects_autenticados' %}">Proyectos publicados</a></li>
                                 </ul>
                             </li>
                         {% endif %}

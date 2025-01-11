@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mt-5">
     <!-- Título del proyecto -->
-    <h1 class="text-center mb-4"> Proyecto: {{ proyecto.titulo }}</h1>
+    <h1 class="text-center mb-4"> Proyectoaasds: {{ proyecto.titulo }}</h1>
 
     <!-- Carrusel -->
     <div class="mb-4">
@@ -47,7 +47,17 @@
                 <p>{{ proyecto.descripcion|linebreaksbr }}</p>
             </div>
             <p><strong>Fecha de agregado:</strong> {{ proyecto.FechaDeAgregado }}</p>
-            <a href="{% url 'descargar_proyecto_pdf_visitantes' project_id=proyecto.id %}" 
+            <p class="mb-1">
+                <strong>Estatus:</strong> 
+                {% if proyecto.estatus %}
+                    <span >
+                        {{ proyecto.estatus.nombre }}
+                    </span>
+                {% else %}
+                    <span class="badge bg-secondary">Sin estatus</span>
+                {% endif %}
+            </p>
+            <a href="{% url 'descargar_proyecto_pdf' project_id=proyecto.id %}" 
    class="btn btn-primary mt-3">
     Descargar en PDF
 </a>
